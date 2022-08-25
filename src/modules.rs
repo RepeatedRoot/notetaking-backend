@@ -27,10 +27,18 @@ pub struct User {
     pub surname: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub given_names: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub middle_names: Option<String>,
     #[serde(with = "bson::serde_helpers::chrono_datetime_as_bson_datetime")]
     pub dob: chrono::DateTime<Utc>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sex: Option<Sex>
+    pub sex: Option<Sex>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub address: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub postal_address: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub phone: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -40,7 +48,7 @@ pub struct UserMgr {
 
 /* Functions for user management */
 impl UserMgr {
-    pub async fn new(db_url: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
+    pub async fn new(db_url: &str) -> Result<Self, Box<dyn Error>> {
         let client = Client::with_uri_str(db_url).await?;
         let coll = client.database(DB_NAME).collection(COLL_NAME);
         Ok(Self { coll } )
@@ -49,6 +57,8 @@ impl UserMgr {
     pub async fn db_insert_client(&self, client: &mut User) -> Result<ObjectId, Box<dyn Error>> {
         err_if_none(&client.surname, "surname")?;
         err_if_none(&client.given_names, "given_names")?;
+        err_if_none(&client.address, "address")?;
+        err_if_none(&client.phone, "phone")?;
         err_if_none(&client.sex, "sex")?;
         let insert_result = self.coll.insert_one(client, None).await?;
         let client_id: ObjectId = insert_result.inserted_id
