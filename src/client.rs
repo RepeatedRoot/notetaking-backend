@@ -1,55 +1,34 @@
-use serde::{Deserialize, Serialize};
 use mongodb::{
     bson::{doc, oid::ObjectId},
     {Client, Collection}
 };
-use chrono::{Utc};
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use bson::{Bson, document::Document};
 
 const DB_NAME: &str = "CAFHS-notetaking";
 const COLL_NAME: &str = "clients";
  
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub enum Sex {
-    Male,
-    Female,
-    Other
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct User {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<bson::oid::ObjectId>,
-    pub surname: String,
-    pub given_names: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub middle_names: Option<String>,
-    #[serde(with = "bson::serde_helpers::chrono_datetime_as_bson_datetime")]
-    pub dob: chrono::DateTime<Utc>,
-    pub sex: Sex,
-    pub address: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub postal_address: Option<String>,
-    pub phone: u32,
-}
-
+/* A struct to store database management variables */
 #[derive(Debug, Clone)]
-pub struct ClientMgr {
+pub struct DatabaseMgr {
+    pub client: Client,
     pub coll: Collection<Document>
 }
 
-/* Functions for user management */
-impl ClientMgr {
+/* Functions for database management */
+impl DatabaseMgr {
+    /* Intialise the datbase manager struct with a connection reference */
     pub async fn new(db_uri: &str) -> Result<Self, Box<dyn Error>> {
-        let client: Client = Client::with_uri_str(db_uri).await?;
+        let client: Client = Client::with_uri_str(db_uri).await?;   //create a new connection, return any errors if encountered
         let coll: Collection<Document> = client.database(DB_NAME).collection(COLL_NAME);
 
-        Ok(Self { coll } )
+        Ok(Self { client, coll } )  //Everything worked as expected, return the struct
     }
 
-    pub async fn db_insert_client(&self, client: &User) -> Result<ObjectId, Box<dyn Error>> {
-        let serialized_client: Bson = bson::to_bson(&client)?;
+    /* Serialise a struct and insert the resulting document into the database */
+    pub async fn db_insert_document<T: Serialize>(&self, structure: &T) -> Result<ObjectId, Box<dyn Error>> {
+        let serialized_client: Bson = bson::to_bson(&structure)?;
         let document: &Document = serialized_client.as_document().unwrap();
         let insert_result = self.coll.insert_one(document, None).await?;
         let client_id: ObjectId = insert_result.inserted_id
@@ -57,14 +36,15 @@ impl ClientMgr {
             .expect("Retrieved _id should have been of type ObjectId");
         
         Ok(client_id)
-    }
+    }   
 
     #[allow(dead_code)]
-    pub async fn db_find_client(&self, filter: &bson::Document) -> Result<(), Box<dyn Error>> {
+    pub async fn db_find_document(&self, filter: &bson::Document) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    pub async fn db_delete_client(&self, id: &ObjectId) -> Result<(), Box<dyn Error>> {
+    /* Remove a document by it's _id */
+    pub async fn db_delete_document(&self, id: &ObjectId) -> Result<(), Box<dyn Error>> {
         self.coll.delete_one(doc! {"_id": id}, None).await?;
         Ok(())
     }
