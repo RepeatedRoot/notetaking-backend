@@ -1,50 +1,37 @@
-use mongodb::{bson, Client, options::{ClientOptions, ResolverConfig}};
 use std::env;
 use std::error::Error;
+use bson::oid::ObjectId;
 use tokio;
 use chrono::{Utc, TimeZone};
 
-mod modules;
-mod validation;
-//mod clinicion;
+mod client;
 
-use modules::{User, UserMgr, Sex};
+use client::{ClientMgr, User, Sex};
+mod clinician;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-   // Load the MongoDB connection string from an environment variable:
-   let client_uri =
-      env::var("MONGODB_URI").expect("You must set the MONGODB_URI environment var!");
-    
-   println!("{}", client_uri);
-   // A Client is needed to connect to MongoDB:
-   // An extra line of code to work around a DNS issue on Windows:
-   let options =
-      ClientOptions::parse_with_resolver_config(&client_uri, ResolverConfig::cloudflare())
-         .await?;
-   let client = Client::with_options(options)?;
-   
-   let user_manager = UserMgr::new(&client_uri).await?;
+    // Load the MongoDB connection string from an environment variable:
+    let client_uri: String = env::var("MONGODB_URI").expect("You must set the MONGODB_URI environment var!");
+        
+    println!("{}", client_uri);
 
-   let mut test_user: User = User {
-       id: None,
-       surname: Some("Smith".to_owned()),
-       given_names: Some("Jones".to_owned()),
-       middle_names: None,
-       dob: Utc.ymd(1980, 3, 2).and_hms(0, 0, 0),
-       sex: Some(Sex::Male),
-       address: Some("This is a house at a street".to_owned()),
-       postal_address: None,
-       phone: Some(8272_0444),
-   };
+    let client_manager: ClientMgr = ClientMgr::new(&client_uri).await?;
 
-   println!("{:?}", test_user);
+    let test_client = User {
+        id: None,
+        surname: "Surname".to_owned(),
+        given_names: "Firstname".to_owned(),
+        middle_names: None,
+        dob: Utc.ymd(1982, 04, 11).and_hms(0,0,0),
+        sex: Sex::Male,
+        address: "A street".to_owned(),
+        postal_address: None,
+        phone: 0412_212_212
+    };
 
-   let serialized_user = bson::to_bson(&test_user)?;
-   let document = serialized_user.as_document().unwrap();
+    let insert_result: ObjectId = client_manager.db_insert_client(&test_client).await?;
 
-   let inserted_result = user_manager.db_insert_client(&mut test_user).await?;
-   println!("Inserted _id: {:?}", inserted_result);
- 
-   Ok(())
+    client_manager.db_delete_client(&insert_result).await?;
+    Ok(())
 }

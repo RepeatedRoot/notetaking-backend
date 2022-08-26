@@ -7,8 +7,6 @@ use mongodb::{
 use chrono::{TimeZone, Utc};
 use std::error::Error;
 
-use crate::validation::{err_if_none, get_or_err};
-
 /* The possible qualifications of a clinicion */
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum Qualification {
