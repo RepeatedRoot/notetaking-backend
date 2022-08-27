@@ -16,6 +16,7 @@ pub enum Qualification {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "lowercase")]
 pub enum Sex {
     Male,
     Female,

@@ -2,7 +2,7 @@ use mongodb::{
     bson::{doc, oid::ObjectId},
     {Client, Collection}
 };
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::error::Error;
 use bson::{Bson, document::Document};
 
@@ -39,8 +39,14 @@ impl DatabaseMgr {
     }   
 
     #[allow(dead_code)]
-    pub async fn db_find_document(&self, filter: &bson::Document) -> Result<(), Box<dyn Error>> {
-        Ok(())
+    pub async fn db_find_document<T: DeserializeOwned>(&self, document_id: &ObjectId) -> Result<T, Box<dyn Error>> {
+        let loaded_document = self.coll.find_one(Some(doc! {"_id": document_id }), None)
+            .await?
+            .expect("Document not found");
+        
+        let loaded_document_struct = bson::from_bson(Bson::Document(loaded_document))?;
+        println!("Document loaded from collection");
+        Ok(loaded_document_struct)
     }
 
     /* Remove a document by it's _id */
