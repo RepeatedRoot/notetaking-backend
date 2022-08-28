@@ -1,13 +1,19 @@
 use std::env;
 use std::error::Error;
+
 use bson::oid::ObjectId;
 use tokio;
 use chrono::{Utc, TimeZone};
 
-mod client;
+mod client; //Database client
+mod utils;  //Utilities (struct/enum definitions)
 
-use client::{ClientMgr, User, Sex};
-mod clinician;
+use client::{DatabaseMgr};
+use utils::{User, Sex, Workplace};
+
+const DB_NAME: &str = "CAFHS-notetaking";
+const CLIENTS: &str = "clients";
+const WORKPLACE: &str = "workplaces";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -16,22 +22,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
         
     println!("{}", client_uri);
 
-    let client_manager: ClientMgr = ClientMgr::new(&client_uri).await?;
+    let client_manager: DatabaseMgr = DatabaseMgr::new(&client_uri, DB_NAME).await?;
 
-    let test_client = User {
+    let test_workplace = Workplace {
         id: None,
-        surname: "Surname".to_owned(),
-        given_names: "Firstname".to_owned(),
-        middle_names: None,
-        dob: Utc.ymd(1982, 04, 11).and_hms(0,0,0),
-        sex: Sex::Male,
-        address: "A street".to_owned(),
-        postal_address: None,
-        phone: 0412_212_212
+        name: "CaFHS Morphett Vale".to_owned(),
+        address: "211 Main S Rd, Morphett Vale SA 5162".to_owned(),
+        phone: 1300_733_606
     };
 
-    let insert_result: ObjectId = client_manager.db_insert_client(&test_client).await?;
+    let insert_result = client_manager.db_insert_document(&test_workplace, WORKPLACE).await?;
 
-    client_manager.db_delete_client(&insert_result).await?;
+    println!("{:?}", insert_result);
+
     Ok(())
 }
