@@ -6,9 +6,6 @@ use serde::{Serialize, de::DeserializeOwned};
 use std::error::Error;
 use bson::{Bson, document::Document};
 
-const DB_NAME: &str = "CAFHS-notetaking";
-const COLL_NAME: &str = "clients";
- 
 /* A struct to store database management variables */
 #[derive(Debug, Clone)]
 pub struct DatabaseMgr {
@@ -19,9 +16,9 @@ pub struct DatabaseMgr {
 /* Functions for database management */
 impl DatabaseMgr {
     /* Intialise the datbase manager struct with a connection reference */
-    pub async fn new(db_uri: &str) -> Result<Self, Box<dyn Error>> {
+    pub async fn new(db_uri: &str, db_name: &str, coll_name: &str) -> Result<Self, Box<dyn Error>> {
         let client: Client = Client::with_uri_str(db_uri).await?;   //create a new connection, return any errors if encountered
-        let coll: Collection<Document> = client.database(DB_NAME).collection(COLL_NAME);
+        let coll: Collection<Document> = client.database(db_name).collection(coll_name);
 
         Ok(Self { client, coll } )  //Everything worked as expected, return the struct
     }
@@ -38,7 +35,6 @@ impl DatabaseMgr {
         Ok(client_id)
     }   
 
-    #[allow(dead_code)]
     pub async fn db_find_document<T: DeserializeOwned>(&self, document_id: &ObjectId) -> Result<T, Box<dyn Error>> {
         let loaded_document = self.coll.find_one(Some(doc! {"_id": document_id }), None)
             .await?

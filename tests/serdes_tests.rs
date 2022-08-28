@@ -29,6 +29,9 @@ mod tests {
     let serialized_bson = bson::to_bson(&test_client)?;
     let serialized_document = serialized_bson.as_document().unwrap();
 
+    let deserialized_document: User = bson::from_bson(serialized_document.into())?;
+
+    assert_eq!(test_client, deserialized_document);
     Ok(())
   }
 }
