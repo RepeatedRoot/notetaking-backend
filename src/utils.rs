@@ -5,7 +5,7 @@ use mongodb::{
 use chrono::{Utc};
 
 /* The possible qualifications of a clinicion */
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub enum Qualification {
     MedicalOfficer,
     ClinicalNurse,
@@ -42,7 +42,7 @@ pub struct User {
 }
 
 /* The workplace struct */
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Workplace {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
@@ -52,13 +52,13 @@ pub struct Workplace {
 }
 
 /* Details about a clinician */
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Clinician {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    id: Option<ObjectId>,
-    first_name: String,
-    last_name: String,
-    phone: u32,
-    workplace: ObjectId,
-    qualification: Qualification
+    pub id: Option<ObjectId>,
+    pub first_name: String,
+    pub last_name: String,
+    pub phone: u32,
+    pub workplace: ObjectId,
+    pub qualification: Qualification
 }
