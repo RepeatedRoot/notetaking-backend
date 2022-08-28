@@ -595,7 +595,6 @@ dependencies = [
  "rand_core",
  "serde",
  "serde_json",
- "serializable_enum",
  "tokio",
 ]
 
@@ -958,15 +957,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "serializable_enum"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d09d3f7a501c1ade3898d0ce91b6ddfc02263a9ecd17a2af957f10d73bc04ef3"
-dependencies = [
- "serde",
 ]
 
 [[package]]

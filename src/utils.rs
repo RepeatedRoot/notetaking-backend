@@ -23,6 +23,7 @@ pub enum Sex {
     Other
 }
 
+/* Struct to store client information (can't use the name client because of MongoDB) */
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
@@ -45,6 +46,7 @@ pub struct User {
 pub struct Workplace {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
+    pub name: String,
     pub address: String,
     pub phone: u32,
 }
