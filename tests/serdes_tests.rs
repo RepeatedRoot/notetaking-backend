@@ -26,7 +26,8 @@ mod tests {
       sex: Sex::Male,
       address: "A street".to_owned(),
       postal_address: None,
-      phone: 0412_212_212
+      phone: 0412_212_212,
+      notes: ObjectId::new()
     };
 
     let serialized_bson: Bson = bson::to_bson(&test_client)?;

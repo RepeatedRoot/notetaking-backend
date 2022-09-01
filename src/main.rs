@@ -1,3 +1,5 @@
+#![feature(proc_macro_hygiene, decl_macro)]
+
 use std::env;
 use std::error::Error;
 
@@ -7,13 +9,23 @@ use chrono::{Utc, TimeZone};
 
 mod client; //Database client
 mod utils;  //Utilities (struct/enum definitions)
+mod notes;
 
 use client::{DatabaseMgr};
-use utils::{User, Sex, Workplace};
+use utils::{User, Sex, Workplace, Note, Notes};
+
+#[macro_use] extern crate rocket;
 
 const DB_NAME: &str = "CAFHS-notetaking";
 const CLIENTS: &str = "clients";
 const WORKPLACE: &str = "workplaces";
+const NOTES: &str = "notes";
+const USERS: &str = "users";
+
+#[get("/<name>/<age>")]
+fn hello(name: String, age: u8) -> String {
+    format!("Hello, {} year old named {}!", age, name)
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -31,9 +43,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
         phone: 1300_733_606
     };
 
-    let insert_result = client_manager.db_insert_document(&test_workplace, WORKPLACE).await?;
+    //let insert_result = client_manager.db_insert_document(&test_workplace, WORKPLACE).await?;
 
-    println!("{:?}", insert_result);
+    //println!("{:?}", insert_result);
+
+    let mut notes: Notes = Notes::new();
+
+    let note: Note = Note {
+        date: Utc::now(),
+        clinician: ObjectId::new(),
+        note: "This is a note".to_owned(),
+    };
+
+    notes.notes.push(note.clone());
+
+    notes.add_note(note);
+    
+    let _rocket = rocket::ignite().mount("/hello", routes![hello]).launch();
 
     Ok(())
 }

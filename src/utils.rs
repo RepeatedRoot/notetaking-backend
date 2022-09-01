@@ -4,6 +4,8 @@ use mongodb::{
 };
 use chrono::{Utc};
 
+use std::vec::Vec;
+
 /* The possible qualifications of a clinicion */
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub enum Qualification {
@@ -39,6 +41,7 @@ pub struct User {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub postal_address: Option<String>,
     pub phone: u32,
+    pub notes: ObjectId
 }
 
 /* The workplace struct */
@@ -62,3 +65,21 @@ pub struct Clinician {
     pub workplace: ObjectId,
     pub qualification: Qualification
 }
+
+/* A single note */ 
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub struct Note {
+    #[serde(with = "bson::serde_helpers::chrono_datetime_as_bson_datetime")]
+    pub date: chrono::DateTime<Utc>,
+    pub clinician: ObjectId,
+    pub note: String,
+}
+
+/* A collection of notes for a given user */
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+pub struct Notes {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
+    pub notes: Vec<Note>
+}
+

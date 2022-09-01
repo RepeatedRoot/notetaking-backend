@@ -27,14 +27,20 @@ impl DatabaseMgr {
 
     /* Serialise a struct and insert the resulting document into the database */
     pub async fn db_insert_document<T: Serialize>(&self, structure: &T, coll_name: &str) -> Result<ObjectId, Box<dyn Error>> {
-        let collection: Collection<Document> = self.db.collection(coll_name);
+        let collection: Collection<Document> = self.db.collection(coll_name); //The collection to
+                                                                              //reference
         
-        let bson_document: Bson = bson::to_bson(&structure)?;
-        let document: &Document = bson_document.as_document().unwrap();
-        let insert_result = collection.insert_one(document, None).await?;
+        let bson_document: Bson = bson::to_bson(&structure)?;               //Serialize the struct to BSON
+        let document: &Document = bson_document.as_document().unwrap();     //Turn the raw BSON into a
+                                                                            //document
+        let insert_result = collection.insert_one(document, None).await?;   //Insert the document
+                                                                            //into the database
         let client_id: ObjectId = insert_result.inserted_id
             .as_object_id()
-            .expect("Retrieved _id should have been of type ObjectId");
+            .expect("Retrieved _id should have been of type ObjectId");     //Get the ID of the
+                                                                            //inserted document,
+                                                                            //return errors if
+                                                                            //encountered
         
         Ok(client_id)
     }   
@@ -47,8 +53,8 @@ impl DatabaseMgr {
             .await?
             .expect("Document not found");
         
-        let loaded_document_struct = bson::from_bson(Bson::Document(loaded_document))?;
-        println!("Document loaded from collection");
+        let loaded_document_struct: T = bson::from_bson(Bson::Document(loaded_document))?;
+        
         Ok(loaded_document_struct)
     }
 
