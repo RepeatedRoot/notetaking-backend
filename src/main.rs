@@ -1,65 +1,29 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+//add external modules
+mod api;
+mod models;
+mod repository;
 
-use std::env;
-use std::error::Error;
+#[macro_use]
+extern crate rocket;
 
-use bson::oid::ObjectId;
-use tokio;
-use chrono::{Utc, TimeZone};
+use api::user_api::{create_user, get_user, update_user, delete_user, get_all_users};
+use api::client_api::{create_client, get_client, get_all_clients};
+use api::workplace_api::{get_workplace, get_all_workplaces};
+use repository::mongodb_repo::MongoRepo;
 
-mod client; //Database client
-mod utils;  //Utilities (struct/enum definitions)
-mod notes;
-
-use client::{DatabaseMgr};
-use utils::{User, Sex, Workplace, Note, Notes};
-
-#[macro_use] extern crate rocket;
-
-const DB_NAME: &str = "CAFHS-notetaking";
-const CLIENTS: &str = "clients";
-const WORKPLACE: &str = "workplaces";
-const NOTES: &str = "notes";
-const USERS: &str = "users";
-
-#[get("/<name>/<age>")]
-fn hello(name: String, age: u8) -> String {
-    format!("Hello, {} year old named {}!", age, name)
+#[get("/")]
+fn home() -> &'static str {
+    "Hello, world!"
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    // Load the MongoDB connection string from an environment variable:
-    let client_uri: String = env::var("MONGODB_URI").expect("You must set the MONGODB_URI environment var!");
-        
-    println!("{}", client_uri);
+#[launch]
+fn rocket() -> _ {
+    let db = MongoRepo::init();
 
-    let client_manager: DatabaseMgr = DatabaseMgr::new(&client_uri, DB_NAME).await?;
-
-    let test_workplace = Workplace {
-        id: None,
-        name: "CaFHS Morphett Vale".to_owned(),
-        address: "211 Main S Rd, Morphett Vale SA 5162".to_owned(),
-        phone: 1300_733_606
-    };
-
-    //let insert_result = client_manager.db_insert_document(&test_workplace, WORKPLACE).await?;
-
-    //println!("{:?}", insert_result);
-
-    let mut notes: Notes = Notes::new();
-
-    let note: Note = Note {
-        date: Utc::now(),
-        clinician: ObjectId::new(),
-        note: "This is a note".to_owned(),
-    };
-
-    notes.notes.push(note.clone());
-
-    notes.add_note(note);
-    
-    let _rocket = rocket::ignite().mount("/hello", routes![hello]).launch();
-
-    Ok(())
+    rocket::build()
+    .manage(db)
+    .mount("/", routes![home])
+    .mount("/", routes![create_user, get_user, update_user, delete_user, get_all_users])
+    .mount("/", routes![create_client, get_client, get_all_clients])
+    .mount("/", routes![get_workplace, get_all_workplaces])
 }
