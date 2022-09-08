@@ -27,7 +27,9 @@ pub fn get_user(db: &State<MongoRepo>, path: String) -> Result<Json<User>, Statu
   if id.is_empty() {
     return Err(Status::BadRequest);
   }
+
   let user_detail = db.get_user(&id);
+
   match user_detail {
     Ok(user) => Ok(Json(user)),
     Err(_) => Err(Status::InternalServerError)
@@ -37,10 +39,10 @@ pub fn get_user(db: &State<MongoRepo>, path: String) -> Result<Json<User>, Statu
 #[put("/user/<path>", data="<new_user>")]
 pub fn update_user(db: &State<MongoRepo>, path: String, new_user: Json<User>) -> Result<Json<User>, Status> {
   let id = path;
-  let db2 = db.clone();
   if id.is_empty() {
     return Err(Status::BadRequest);
   }
+
   let data = User {
     id: Some(ObjectId::parse_str(&id).unwrap()),
     firstname: new_user.firstname.to_owned(),
@@ -49,11 +51,13 @@ pub fn update_user(db: &State<MongoRepo>, path: String, new_user: Json<User>) ->
     workplace: new_user.workplace.to_owned(),
     qualification: new_user.qualification.clone()
   };
+
   let update_result = db.update_user(&id, data);
+
   match update_result {
     Ok(update) => {
       if update.matched_count == 1 {
-        let updated_user_info = db2.get_user(&id);
+        let updated_user_info = db.get_user(&id);
         match updated_user_info {
           Ok(user) => Ok(Json(user)),
           Err(_) => Err(Status::InternalServerError)
@@ -72,7 +76,9 @@ pub fn delete_user(db: &State<MongoRepo>, path: String) -> Result<Json<&str>, St
   if id.is_empty() {
     return Err(Status::BadRequest);
   }
+
   let result = db.delete_user(&id);
+
   match result {
     Ok(res) => {
       if res.deleted_count == 1 {
@@ -88,6 +94,7 @@ pub fn delete_user(db: &State<MongoRepo>, path: String) -> Result<Json<&str>, St
 #[get("/users")]
 pub fn get_all_users(db: &State<MongoRepo>) -> Result<Json<Vec<User>>, Status> {
   let users = db.get_all_users();
+  
   match users {
     Ok(users) => Ok(Json(users)),
     Err(_) => Err(Status::InternalServerError)

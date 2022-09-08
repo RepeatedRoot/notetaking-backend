@@ -10,12 +10,13 @@ use mongodb::{
   results::{InsertOneResult, UpdateResult, DeleteResult},
   sync::{Client, Collection}
 };
-use crate::models::{user_model::{User}, client_model::CafhsClient, workplace_model::Workplace};
+use crate::models::{user_model::User, client_model::CafhsClient, workplace_model::Workplace, notes_model::{Note, NoteCollection}};
 
 pub struct MongoRepo {
   users: Collection<User>,
   clients: Collection<CafhsClient>,
-  workplaces: Collection<Workplace>
+  workplaces: Collection<Workplace>,
+  notes: Collection<NoteCollection>
 }
 
 impl MongoRepo {
@@ -28,8 +29,9 @@ impl MongoRepo {
     let users: Collection<User> = db.collection("users");
     let clients: Collection<CafhsClient> = db.collection("clients");
     let workplaces: Collection<Workplace> = db.collection("workplace");
+    let notes: Collection<NoteCollection> = db.collection("notes");
 
-    Self { users, clients, workplaces }
+    Self { users, clients, workplaces, notes }
   }
 
   pub fn create_user(&self, new_user: User) -> Result<InsertOneResult, Box<dyn Error>> {
@@ -171,5 +173,48 @@ impl MongoRepo {
     let workplaces = cursors.map(|doc| doc.unwrap()).collect();
 
     Ok(workplaces)
+  }
+
+  pub fn create_notes(&self) -> Result<InsertOneResult, Box<dyn Error>> {
+    let new_doc = NoteCollection {
+      id: None,
+      notes: Vec::<Note>::new()
+    };
+    let note_collection = self
+      .notes
+      .insert_one(new_doc, None)
+      .expect("Error creating note collection");
+    
+    Ok(note_collection)
+  }
+
+  pub fn get_notes(&self, id: &String) -> Result<NoteCollection, Box<dyn Error>> {
+    let obj_id = ObjectId::parse_str(id).unwrap();
+    let filter = doc! { "_id": obj_id };
+    let notes_detail = self
+      .notes
+      .find_one(filter, None)
+      .ok()
+      .expect("Error getting notes details");
+    
+    Ok(notes_detail.unwrap())
+  }
+
+  pub fn add_note(&self, id: &String, note: Note) -> Result<UpdateResult, Box<dyn Error>> {
+    let obj_id = ObjectId::parse_str(id).unwrap();
+    let filter = doc! { "_id": obj_id };
+    let new_doc = doc! {
+      "$push": {
+        "notes": bson::to_bson(&note)?
+      }
+    };
+
+    let updated_doc: UpdateResult = self
+      .notes
+      .update_one(filter, new_doc, None)
+      .ok()
+      .expect("Error updating notes");
+    
+    Ok(updated_doc)
   }
 }
