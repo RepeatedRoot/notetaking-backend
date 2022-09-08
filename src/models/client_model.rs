@@ -20,5 +20,8 @@ pub struct CafhsClient {
   #[serde(skip_serializing_if = "Option::is_none")]
   pub postal_address: Option<String>,
   pub phone: String,
-  pub connections: Vec<ObjectId>
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub connections: Option<Vec<ObjectId>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub notes: Option<ObjectId>
 }

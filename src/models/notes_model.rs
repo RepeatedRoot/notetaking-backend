@@ -1,11 +1,9 @@
 use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
-use chrono::Utc;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Note {
-  #[serde(with = "bson::serde_helpers::chrono_datetime_as_bson_datetime")]
-  pub datetime: chrono::DateTime<Utc>,
+  pub datetime: String,
   pub clinician: ObjectId,
   pub note: String
 }

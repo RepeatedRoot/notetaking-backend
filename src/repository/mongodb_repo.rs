@@ -28,7 +28,7 @@ impl MongoRepo {
     let db = client.database("CAFHS-notetaking");
     let users: Collection<User> = db.collection("users");
     let clients: Collection<CafhsClient> = db.collection("clients");
-    let workplaces: Collection<Workplace> = db.collection("workplace");
+    let workplaces: Collection<Workplace> = db.collection("workplaces");
     let notes: Collection<NoteCollection> = db.collection("notes");
 
     Self { users, clients, workplaces, notes }
@@ -117,7 +117,8 @@ impl MongoRepo {
       address: new_client.address,
       postal_address: new_client.postal_address,
       phone: new_client.phone,
-      connections: new_client.connections
+      connections: new_client.connections,
+      notes: new_client.notes
     };
 
     let client = self

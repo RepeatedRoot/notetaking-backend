@@ -13,7 +13,8 @@ pub fn create_client(db: &State<MongoRepo>, new_client: Json<CafhsClient>) -> Re
     address: new_client.address.to_owned(),
     postal_address: new_client.postal_address.to_owned(),
     phone: new_client.phone.to_owned(),
-    connections: new_client.connections.clone()
+    connections: new_client.connections.clone(),
+    notes: Some(db.create_notes().unwrap().inserted_id.as_object_id().expect("Error creating notes for client"))
   };
 
   let user_detail = db.create_client(data);

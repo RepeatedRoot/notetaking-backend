@@ -36,7 +36,7 @@ pub fn add_note(db: &State<MongoRepo>, path: String, new_note: Json<Note>) -> Re
   }
 
   let data = Note {
-    datetime: chrono::offset::Utc::now(),
+    datetime: new_note.datetime.to_owned(),
     clinician: new_note.clinician,
     note: new_note.note.to_owned()
   };
