@@ -1,7 +1,6 @@
 use crate::{models::notes_model::{Note, NoteCollection}, repository::mongodb_repo::MongoRepo};
 use mongodb::results::InsertOneResult;
 use rocket::{http::Status, serde::json::Json, State};
-use chrono;
 
 #[get("/notes")]
 pub fn create_notes(db: &State<MongoRepo>) -> Result<Json<InsertOneResult>, Status> {
