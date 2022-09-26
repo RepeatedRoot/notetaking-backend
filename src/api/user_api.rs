@@ -1,9 +1,12 @@
 use crate::{models::user_model::User, repository::mongodb_repo::MongoRepo};
 use mongodb::{bson::oid::ObjectId, results::InsertOneResult};
 use rocket::{http::Status, serde::json::Json, State};
+use rocket_validation::Validated;
 
 #[post("/user", data = "<new_user>")]
-pub fn create_user(db: &State<MongoRepo>, new_user: Json<User>) -> Result<Json<InsertOneResult>, Status> {
+pub fn create_user(db: &State<MongoRepo>, new_user: Validated<Json<User>>) -> Result<Json<InsertOneResult>, Status> {
+  let new_user = Json(new_user.into_inner());
+  
   let data = User {
     id: None,
     firstname: new_user.firstname.to_owned(),
@@ -37,7 +40,9 @@ pub fn get_user(db: &State<MongoRepo>, path: String) -> Result<Json<User>, Statu
 }
 
 #[put("/user/<path>", data="<new_user>")]
-pub fn update_user(db: &State<MongoRepo>, path: String, new_user: Json<User>) -> Result<Json<User>, Status> {
+pub fn update_user(db: &State<MongoRepo>, path: String, new_user: Validated<Json<User>>) -> Result<Json<User>, Status> {
+  let new_user = Json(new_user.into_inner());
+
   let id = path;
   if id.is_empty() {
     return Err(Status::BadRequest);
