@@ -24,7 +24,9 @@ pub struct User {
   pub lastname: String,
   #[validate(phone)] //Ensure that the phone number is of valid format
   pub phone: String,
+  pub email: String,
   pub workplace: ObjectId, //The ID of the workplace the clinican works at
-  pub qualification: Qualification //The qualification of the clinician as described by the above
+  pub qualification: Qualification, //The qualification of the clinician as described by the above
                                    //enum
+  pub password: Option<String>     //To be used when creating an account
 }

@@ -12,8 +12,10 @@ pub fn create_user(db: &State<MongoRepo>, new_user: Validated<Json<User>>) -> Re
     firstname: new_user.firstname.to_owned(),
     lastname: new_user.lastname.to_owned(),
     phone: new_user.phone.to_owned(),
+    email: new_user.email.to_owned(),
     workplace: new_user.workplace.to_owned(),
-    qualification: new_user.qualification.clone()
+    qualification: new_user.qualification.clone(),
+    password: new_user.password.to_owned()
   };
 
   let user_detail = db.create_user(data);
@@ -53,8 +55,10 @@ pub fn update_user(db: &State<MongoRepo>, path: String, new_user: Validated<Json
     firstname: new_user.firstname.to_owned(),
     lastname: new_user.lastname.to_owned(),
     phone: new_user.phone.to_owned(),
+    email: new_user.email.to_owned(),
     workplace: new_user.workplace.to_owned(),
-    qualification: new_user.qualification.clone()
+    qualification: new_user.qualification.clone(),
+    password: None
   };
 
   let update_result = db.update_user(&id, data);

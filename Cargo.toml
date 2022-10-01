@@ -12,5 +12,6 @@ dotenv = "0.15.0"
 mongodb = { version = "2.3.0", default-features = false, features = ["sync"] }
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 rocket-validation = "0.1.2"
+rust-crypto = "0.2.36"
 serde = "1.0.144"
 validator = { version = "0.16.0", features = ["derive", "phone"] }
