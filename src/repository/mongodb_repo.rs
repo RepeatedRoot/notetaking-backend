@@ -13,20 +13,8 @@ use mongodb::{
   sync::{Client, Collection}
 };
 
-use rocket::http::Status;
-use rocket::request::{Request, FromRequest, Outcome};
-
 //Models of available data types
 use crate::models::{user_model::User, client_model::CafhsClient, workplace_model::Workplace, notes_model::{Note, NoteCollection}, auth_model::AuthInfo};
-
-#[derive(Debug)]
-pub enum LoginError {
-  InvalidData,
-  UsernameDoesNotExist,
-  InvalidPassword
-}
-
-pub struct AuthenticatedUser(ObjectId);
 
 //A structure to hold connections to each collection in the database
 pub struct MongoRepo {
@@ -37,14 +25,15 @@ pub struct MongoRepo {
   notes: Collection<NoteCollection>
 }
 
-fn hash_password(password: &String) -> String {
-  let mut hasher = Sha3::sha3_256();
-  hasher.input_str(password);
-  hasher.result_str()
-}
-
 /* Implementing functions for the MongoRepo structure */
 impl MongoRepo {
+  /* Hash a password using 256-bit SHA3 */
+  pub fn hash_password(password: &String) -> String {
+    let mut hasher = Sha3::sha3_256();
+    hasher.input_str(password);
+    hasher.result_str()
+  }
+
   pub fn init() -> Self { /* Initialise a new MongoRepo instance */
     dotenv().ok();
     let uri = env::var("MONGODB_URI").expect("You must set the MONGODB_URI environment variable!"); //connect to the database
@@ -84,7 +73,7 @@ impl MongoRepo {
     let new_auth = AuthInfo {
       user_id: user.inserted_id.as_object_id().unwrap(),
       password_hash: match new_user.password {
-        Some(password) => hash_password(&password),
+        Some(password) => Self::hash_password(&password),
         None => panic!("No password given")
       }
     };
@@ -276,58 +265,5 @@ impl MongoRepo {
       .expect("Error updating notes");
     
     Ok(updated_doc)
-  }
-}
-
-#[rocket::async_trait]
-impl<'r> FromRequest<'r> for AuthenticatedUser {
-  type Error = LoginError;
-
-  async fn from_request(request: &'r Request<'_>) -> Outcome<AuthenticatedUser, LoginError> {
-    let username = request.headers().get_one("username");
-    let password = request.headers().get_one("password");
-
-    match (username, password) {
-      (Some(u), Some(p)) => {
-        let db_conn = MongoRepo::init();
-        let maybe_user = db_conn.users.find_one( doc! { "email": u }, None);
-
-        match maybe_user {
-          Ok(Some(user)) => {
-            let maybe_auth_info = db_conn.auth.find_one( doc! { "_id": user.id }, None);
-
-            match maybe_auth_info {
-              Ok(Some(auth_info)) => {
-                let hash = hash_password(&String::from(p));
-
-                if hash == auth_info.password_hash {
-                  Outcome::Success(AuthenticatedUser(user.id.unwrap()))
-                } else {
-                  Outcome::Failure((Status::Forbidden, LoginError::InvalidPassword))
-                }
-              },
-              _ => Outcome::Failure(
-                (
-                  Status::MovedPermanently,
-                  LoginError::InvalidPassword
-                )
-              )
-            }
-          },
-          _ => Outcome::Failure(
-            (
-              Status::NotFound,
-              LoginError::UsernameDoesNotExist
-            )
-          )
-        }
-      }
-      _ => Outcome::Failure(
-        (
-          Status::BadRequest,
-          LoginError::InvalidData
-        )
-      )
-    }
   }
 }

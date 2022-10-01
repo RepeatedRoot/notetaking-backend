@@ -11,6 +11,8 @@ use api::user_api::{create_user, get_user, update_user, delete_user, get_all_use
 use api::client_api::{create_client, get_client, get_all_clients};
 use api::workplace_api::{get_workplace, get_all_workplaces};
 use api::notes_api::{create_notes, get_notes, add_note};
+use api::auth_api::{login, logout, user_id};
+
 use repository::mongodb_repo::MongoRepo;
 
 /* Rocket API handlers */
@@ -59,4 +61,5 @@ fn rocket() -> _ {
     .mount("/", routes![create_client, get_client, get_all_clients])
     .mount("/", routes![get_workplace, get_all_workplaces])
     .mount("/", routes![create_notes, get_notes, add_note])
+    .mount("/", routes![login, logout, user_id])
 }

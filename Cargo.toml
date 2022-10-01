@@ -10,7 +10,7 @@ bson = { version = "2.4.0", features = ["chrono-0_4"] }
 chrono = "0.4.22"
 dotenv = "0.15.0"
 mongodb = { version = "2.3.0", default-features = false, features = ["sync"] }
-rocket = { version = "0.5.0-rc.2", features = ["json"] }
+rocket = { version = "0.5.0-rc.2", features = ["json", "secrets"] }
 rocket-validation = "0.1.2"
 rust-crypto = "0.2.36"
 serde = "1.0.144"
