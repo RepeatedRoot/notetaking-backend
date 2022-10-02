@@ -1,6 +1,7 @@
 /* Include dependencies */
 use crate::{models::client_model::CafhsClient, repository::mongodb_repo::MongoRepo};
 use mongodb::results::InsertOneResult;
+use rocket::http::CookieJar;
 use rocket::{http::Status, serde::json::Json, State};
 
 /* Create a new client entry in the database, retun the ID */
@@ -31,31 +32,43 @@ pub fn create_client(db: &State<MongoRepo>, new_client: Json<CafhsClient>) -> Re
 
 /* Get information about a client given their ID */
 #[get("/client/<path>")]
-pub fn get_client(db: &State<MongoRepo>, path: String) -> Result<Json<CafhsClient>, Status> {
-  let id = path;  // A string of the ID
-  if id.is_empty() {
-    return Err(Status::BadRequest); //No ID was present, return an error.
-  }
-
-  /* Get the client's information from the database */
-  let client_detail = db.get_client(&id);
-
-  /* Return the client information struct, or an error if generated */
-  match client_detail {
-    Ok(client) => Ok(Json(client)),
-    Err(_) => Err(Status::InternalServerError)
+pub fn get_client(db: &State<MongoRepo>, cookies: &CookieJar<'_>, path: String) -> Result<Json<CafhsClient>, Status> {
+  let authorised = db.check_auth(cookies);
+  
+  if authorised {
+    let id = path;  // A string of the ID
+    if id.is_empty() {
+      return Err(Status::BadRequest); //No ID was present, return an error.
+    }
+  
+    /* Get the client's information from the database */
+    let client_detail = db.get_client(&id);
+  
+    /* Return the client information struct, or an error if generated */
+    match client_detail {
+      Ok(client) => Ok(Json(client)),
+      Err(_) => Err(Status::InternalServerError)
+    }
+  } else {
+    Err(Status::Forbidden)
   }
 }
 
 /* Get a list of all client's information */
 #[get("/clients")]
-pub fn get_all_clients(db: &State<MongoRepo>) -> Result<Json<Vec<CafhsClient>>, Status> {
-  /* Query the database */
-  let clients = db.get_all_clients();
+pub fn get_all_clients(db: &State<MongoRepo>, cookies: &CookieJar<'_>) -> Result<Json<Vec<CafhsClient>>, Status> {
+  let authorised = db.check_auth(cookies); //if the web client is authorised to make this request
   
-  /* Return a vector of client information structs, or an error */
-  match clients {
-    Ok(clients) => Ok(Json(clients)),
-    Err(_) => Err(Status::InternalServerError)
+  if authorised { //the web client was authorised, continue
+    /* Query the database */
+    let clients = db.get_all_clients();
+    
+    /* Return a vector of client information structs, or an error */
+    match clients {
+      Ok(clients) => Ok(Json(clients)),
+      Err(_) => Err(Status::InternalServerError)
+    }
+  } else { //the web client was not authorised, return an error
+    Err(Status::Forbidden)
   }
 }

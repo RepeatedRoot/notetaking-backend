@@ -17,7 +17,7 @@ pub fn login(db: &State<MongoRepo>, cookies: &CookieJar<'_>, login_info: Validat
 
   match maybe_user {
     Ok(Some(user)) => {
-      let maybe_auth = db.auth.find_one(doc! { "_id": user.id }, None);
+      let maybe_auth = db.auth.find_one(doc! { "user_id": user.id }, None);
 
       match maybe_auth {
         Ok(Some(auth_info)) => {
@@ -37,11 +37,13 @@ pub fn login(db: &State<MongoRepo>, cookies: &CookieJar<'_>, login_info: Validat
   }
 }
 
+/* Logout from the website by removing the user_id private cookie */
 #[post("/logout")]
 pub fn logout(cookies: &CookieJar<'_>) -> () {
   cookies.remove_private(Cookie::named("user_id"));
 }
 
+/* Get the ID of the user by reading their private cookie */
 #[get("/user_id")]
 pub fn user_id(cookies: &CookieJar<'_>) -> Result<String, Status> {
   let id = cookies.get_private("user_id");

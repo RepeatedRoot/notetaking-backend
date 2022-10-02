@@ -13,6 +13,8 @@ use mongodb::{
   sync::{Client, Collection}
 };
 
+use rocket::http::CookieJar;
+
 //Models of available data types
 use crate::models::{user_model::User, client_model::CafhsClient, workplace_model::Workplace, notes_model::{Note, NoteCollection}, auth_model::AuthInfo};
 
@@ -34,6 +36,23 @@ impl MongoRepo {
     hasher.result_str()
   }
 
+  /* Check if a user is authorised, return true if permitted */
+  pub fn check_auth(&self, cookies: &CookieJar<'_>) -> bool {
+    let uid = cookies.get_private("user_id");
+
+    match uid {
+      Some(id) => {
+        let logged_in_id = id.value().to_string();
+        let possible_user = self.auth.find_one(doc! { "user_id": logged_in_id}, None);
+
+        match possible_user {
+          Ok(Some(_)) => true,
+          _           => false
+        }
+      },
+      None => false
+    }
+  }
   pub fn init() -> Self { /* Initialise a new MongoRepo instance */
     dotenv().ok();
     let uri = env::var("MONGODB_URI").expect("You must set the MONGODB_URI environment variable!"); //connect to the database
