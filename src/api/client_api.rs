@@ -6,27 +6,33 @@ use rocket::{http::Status, serde::json::Json, State};
 
 /* Create a new client entry in the database, retun the ID */
 #[post("/client", data="<new_client>")]
-pub fn create_client(db: &State<MongoRepo>, new_client: Json<CafhsClient>) -> Result<Json<InsertOneResult>, Status> {
-  let data = CafhsClient { //A structure to hold the client's information
-    id: None,
-    firstname: new_client.firstname.to_owned(),
-    surname: new_client.surname.to_owned(),
-    middlenames: new_client.middlenames.to_owned(),
-    sex: new_client.sex.clone(),
-    address: new_client.address.to_owned(),
-    postal_address: new_client.postal_address.to_owned(),
-    phone: new_client.phone.to_owned(),
-    connections: new_client.connections.clone(),
-    notes: Some(db.create_notes().unwrap().inserted_id.as_object_id().expect("Error creating notes for client"))
-  };
-
-  /* Insert into the database, returning the result, or an error if encountered */
-  let user_detail = db.create_client(data);
-
-  /* Return the ID or an error */
-  match user_detail {
-    Ok(client) => Ok(Json(client)),
-    Err(_) => Err(Status::InternalServerError)
+pub fn create_client(db: &State<MongoRepo>, cookies: &CookieJar<'_>, new_client: Json<CafhsClient>) -> Result<Json<InsertOneResult>, Status> {
+  let authorised = db.check_auth(cookies);
+  
+  if authorised {
+    let data = CafhsClient { //A structure to hold the client's information
+      id: None,
+      firstname: new_client.firstname.to_owned(),
+      surname: new_client.surname.to_owned(),
+      middlenames: new_client.middlenames.to_owned(),
+      sex: new_client.sex.clone(),
+      address: new_client.address.to_owned(),
+      postal_address: new_client.postal_address.to_owned(),
+      phone: new_client.phone.to_owned(),
+      connections: new_client.connections.clone(),
+      notes: Some(db.create_notes().unwrap().inserted_id.as_object_id().expect("Error creating notes for client"))
+    };
+  
+    /* Insert into the database, returning the result, or an error if encountered */
+    let user_detail = db.create_client(data);
+  
+    /* Return the ID or an error */
+    match user_detail {
+      Ok(client) => Ok(Json(client)),
+      Err(_) => Err(Status::InternalServerError)
+    }
+  } else {
+    Err(Status::Forbidden)
   }
 }
 

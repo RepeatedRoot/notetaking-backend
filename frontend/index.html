@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<title></title>
+		<meta name="description" content="" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="" />
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"
+			integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		></script>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.1/js/bootstrap.min.js"
+			integrity="sha512-vyRAVI0IEm6LI/fVSv/Wq/d0KUfrg3hJq2Qz5FlfER69sf3ZHlOrsLriNm49FxnpUGmhx+TaJKwJ+ByTLKT+Yg=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		></script>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.1/css/bootstrap.min.css"
+			integrity="sha512-siwe/oXMhSjGCwLn+scraPOWrJxHlUgMBMZXdPe2Tnk3I0x3ESCoLz7WZ5NTH6SZrywMY+PB1cjyqJ5jAluCOg=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+	</head>
+	<body>
+		<!--[if lt IE 7]>
+			<p class="browsehappy">
+				You are using an <strong>outdated</strong> browser. Please
+				<a href="#">upgrade your browser</a> to improve your experience.
+			</p>
+		<![endif]-->
+		<div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white" style="width: 100vw; height: 100vh;">
+			<a href="/" class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
+				<svg class="bi pe-none me-2" width="30" height="24"><use xlink:href="#bootstrap"></use></svg>
+				<span class="fs-5 fw-semibold">CaFHS Notetaking</span>
+			</a>
+			<div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="staticBackdropLabel">Please Login</h5>
+						</div>
+						<div class="modal-body">
+							<div class="md-form mb-3">
+								<label for="loginEmail" class="form-label">Email address</label>
+								<input type="email" id="loginEmail" class="form-control validate" placeholder="name@example.com">
+							</div>
+							<div class="md-form mb-3">
+								<label for="loginPassword" class="form-label">Password</label>
+								<input type="password" id="loginPassword" class="form-control validate">
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" onclick="$().login()">Login</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="d-flex flex-row">
+				<div class="client-list list-group list-group-flush border-bottom scrollarea" style="width: 25vw; height: calc(100vh - 63px); overflow-y: scroll;">
+				</div>
+				<div class="d-flex align-items-stretch flex-shrink-0 bg-white" style="width: 75vw; height: calc(100vh - 63px); right: 0;">
+					<div class="d-flex align-items-center justify-content-center notes-container">
+						<div class="card">
+							<div class="card-header">
+								Quote
+							</div>
+							<div class="card-body">
+								<blockquote class="blockquote mb-0">
+									<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+									<footer class="blockquote-footer">Someone famous in <cite title="Source Title">Source Title</cite></footer>
+								</blockquote>
+							</div>
+						</div>
+					</div>
+					<div class="toast-container position-fixed bottom-0 end-0 p-3">
+						<div id="logintoast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+							<div class="toast-header">
+								<svg class="bd-placeholder-img rounded me-2" width="20" height="20" xlmns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+									<rect width="100&" height="100%" fill="#198754"></rect>
+								</svg>
+								<strong class="me-auto">Information</strong>
+								<small class="text-muted">just now</small>
+								<button type="button" class="btn-close" data-bs-dismess="toast" aria-label="Close"></button>
+							</div>
+							<div class="toast-body">
+								Successfully logged in.
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+	<script src="script.js"></script>
+	<script>
+		$(document).ready(function () {
+			$().logout();
+			$(".client-list").getClients();
+			$('.client-entry').click(function () {
+				$(this).viewNotes();
+			});
+		});
+	</script>
+	</body>
+</html>

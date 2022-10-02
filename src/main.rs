@@ -19,12 +19,13 @@ use repository::mongodb_repo::MongoRepo;
 use rocket::http::Header;
 use rocket::{Request, Response};
 use rocket::fairing::{Fairing, Info, Kind};
+use rocket::fs::{FileServer, relative};
 
 /* The webpage (website home) */
-#[get("/")]
+/*#[get("/")]
 fn home() -> &'static str {
     "Hello, world!"
-}
+}*/
 
 /* To hold CORS header information */
 pub struct CORS;
@@ -40,7 +41,7 @@ impl Fairing for CORS {
 
     /* Function to set headers for the response payload */
     async fn on_response<'r>(&self, _req: &'r Request<'_>, res: &mut Response<'r>) {
-        res.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        res.set_header(Header::new("Access-Control-Allow-Origin", "192.168.0.20:8000"));
         res.set_header(Header::new("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"));
         res.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         res.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
@@ -56,10 +57,10 @@ fn rocket() -> _ {
     rocket::build()
     .manage(db)
     .attach(CORS)
-    .mount("/", routes![home])
     .mount("/", routes![create_user, get_user, update_user, delete_user, get_all_users])
     .mount("/", routes![create_client, get_client, get_all_clients])
     .mount("/", routes![get_workplace, get_all_workplaces])
     .mount("/", routes![create_notes, get_notes, add_note])
     .mount("/", routes![login, logout, user_id])
+    .mount("/", FileServer::from(relative!("frontend")))
 }

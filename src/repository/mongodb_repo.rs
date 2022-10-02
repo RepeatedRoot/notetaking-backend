@@ -42,8 +42,8 @@ impl MongoRepo {
 
     match uid {
       Some(id) => {
-        let logged_in_id = id.value().to_string();
-        let possible_user = self.auth.find_one(doc! { "user_id": logged_in_id}, None);
+        let logged_in_id = ObjectId::parse_str(id.value().to_string()).unwrap();
+        let possible_user = self.auth.find_one(doc! { "user_id": logged_in_id }, None);
 
         match possible_user {
           Ok(Some(_)) => true,
