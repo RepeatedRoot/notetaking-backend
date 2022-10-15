@@ -1,8 +1,11 @@
 //database url
 const DATABASE_URL = "http://192.168.0.20:8000";
+
+/* Declaring references to main bootstrap components */
 const loginModal = new bootstrap.Modal('#loginModal');
-const loginToast = new bootstrap.Toast(document.getElementById('logintoast'));
 const noteModal = new bootstrap.Modal('#noteModal');
+const clientModal = new bootstrap.Modal('#clientModal')
+const messageToast = new bootstrap.Toast(document.getElementById('messageToast'));
 
 //Append a client entry to the list
 $.fn.appendClient = function (clientdata) {
@@ -32,7 +35,7 @@ $.fn.getClients = function () {
 		url: `${DATABASE_URL}/clients/`,
 		method: "GET",
 		async: false,
-		xhrFields: { withCredentials: true },
+		xhrFields: { withCredentials: true }, //This endpoint is restricted, send cookies to authenticate
 		success: function (data) {
 			response = data;
 		},
@@ -44,6 +47,11 @@ $.fn.getClients = function () {
 	/* Append each entry in the list to the client container */
 	response.forEach((client) => {
 		this.appendClient(client);
+	});
+
+	/* Add an event listener to each of the client entries which will display the client's notes */
+	$('.client-entry').click(function () {
+		$(this).viewNotes();
 	});
 }
 
@@ -67,6 +75,7 @@ $.fn.viewNotes = function () {
 		url: `${DATABASE_URL}/notes/${NoteId}`,
 		method: "GET",
 		async: false,
+		xhrFields: { withCredentials: true }, //This endpoint is restricted, send cookies to authenticate
 		success: function (data) {
 			response = data;
 			console.log(data);
@@ -86,10 +95,7 @@ $.fn.viewNotes = function () {
 $.fn.renderNote = function (note) {
 	"use strict";
 	
-	const container = $(this);
-
-	console.log('rendering note...');
-	console.log(note);
+	const container = $(this); //the parent element to insert notes into
 
 	/* Parse the datetime object to a string */
 	let date = new Date(note.datetime);
@@ -116,89 +122,144 @@ $.fn.renderNote = function (note) {
 	);
 }
 
+/* Creating a new note to be appended in the database */
 $.fn.createNote = function () {
 	"use strict";
 
-	let clientId = $('.notes-container').attr("current-client");
+	/* Attribute to store the ID of currently selected client's notes */
 	let clientNotes = $('.notes-container').attr("current-notes");
 
+	/* Values of inputs elements in the notes modal */
 	let date = $('#noteDate').val();
 	let note = $('#noteText').val();
 
-	console.log(clientId);
-	console.log(clientNotes);
-	console.log(date, note);
-  
-
+	/* PUT request to insert a notes */
 	$.ajax({
 		url: `${DATABASE_URL}/notes/${clientNotes}`,
 		method: "PUT",
 		async: false,
-		xhrFields: { withCredentials: true },
-		data: JSON.stringify({
+		xhrFields: { withCredentials: true }, //This endpoint is restricted, send cookies to authenticate
+		data: JSON.stringify({ //Encode data into a json object
 			datetime: date,
 			note: note
 		}),
-		success: function (data) {
-			console.log(data);
+		success: function () {
+			$().showMessage("Successfully created note", "success"); //Display a success message
+
+			noteModal.hide(); //Hide the notes modal (it is no needed)
+		
+			$().viewNotes(); //Re-render the notes to update any changes
 		},
 		error: function (error) {
 			console.log(error);
 		}
 	});
-
-	noteModal.hide();
-
-	$().viewNotes();
 };
 
-$.fn.retrieveNotes = async function (clientId) {
+/* Updating or creating client accounts */
+$.fn.manageAcc = function (exists) {
 	"use strict";
-};
 
+	let firstname = $('#clientFirstName');
+	let surname = $('#clientSurname');
+	let middlenames = $('#clientMiddleNames');
+	let sex = $('#clientSex');
+	let address = $('#clientAddress');
+	let postal_address = $('#clientPostalAddress');
+	let phone = $('#clientPhone');
+	
+	if (exists) { 	//The client exists (Update their information)
+		/* Yet to be implemented */
+		console.log("Updating user information is yet to be implemented");
+	} else {		//The client does not exist (create a new account)
+		$.ajax({
+			url: `${DATABASE_URL}/client`,
+			method: 'POST',
+			async: false,
+			xhrFields: { withCredentials: true }, //This endpoint is restricted, send cookies to authenticate
+			data: JSON.stringify({
+				firstname: firstname,
+				surname: surname,
+				middlenames: middlenames,
+				sex: sex,
+				address: address,
+				postal_address: postal_address,
+				phone: phone,
+			}),
+			success: function (result) {
+				console.log(result);
+			},
+			error: function (error) {
+				console.log(error);
+			}
+		});
+	}
+}
+
+/* Show a message using a bootstrap toast */
+$.fn.showMessage = function (message, state) {
+	"use strict";
+
+	let colour = "white";
+
+	switch (state) {
+		case "danger":
+			colour = "red";
+		case "warning":
+			colour = "orange";
+		case "success":
+			colour = "green"; 
+	}
+
+	$('#messageToast rect').attr('fill', colour); //Update the colour of the message toast
+	$('.toast-body').text(message);	//Update the messageToast's message
+
+	messageToast.show();
+}
+
+/* Login to the website */
 $.fn.login = function () {
 	"use strict";
 
+	/* Input values from the login modal */
 	/* let username = $('#loginEmail').val();
 	let password = $("#loginPassword").val(); */
 
 	let username = "erikaodinson@cahfs.sa.gov.au";
 	let password = "password";
 
+	/* POST request to authenticate with the backend (and gain a private cookie if authorised) */
 	$.ajax({
 		url: `${DATABASE_URL}/login`,
 		method: "POST",
 		async: false,
-		data: JSON.stringify({
+		data: JSON.stringify({ //JSON encode input data
 			username: username,
 			password: password
 		}),
-  
 		success: function (data) {
-			console.log("Login success " + data);
-			loginModal.hide();
-			loginToast.show();
+			loginModal.hide();	//Hide the login modal (login was successful)
+			$().showMessage("Successfully logged in.", "success");
 
-			$('.client-list').getClients();
-			 
-			$('.client-entry').click(function () {
-			  $(this).viewNotes();
-			});
+			$('.client-list').getClients(); // Display the list of clients
 		},
 		error: function (error) {
+			$().showMessage("There was an error logging in.", "danger");
 			console.log(error);
 		}
 	})
 }
 
+/* Logout from the website */
 $.fn.logout = function () {
 	"use strict";
 
+	/* POST request to the backend to remove the authenticated private cookie */
 	$.ajax({
 		url: `${DATABASE_URL}/logout`,
 		method: "POST",
 		async: false,
-		xhrFields: { withCredentials: true },
+		xhrFields: { withCredentials: true }, //ensure that cookie is sent
 		success: function (data) {
 			console.log("Successfully logged out " + data);
 		},
