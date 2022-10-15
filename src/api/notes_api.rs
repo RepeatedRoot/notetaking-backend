@@ -1,6 +1,7 @@
 use crate::{models::notes_model::{Note, NoteCollection}, repository::mongodb_repo::MongoRepo};
-use mongodb::results::InsertOneResult;
+use mongodb::{results::InsertOneResult, bson::oid::ObjectId};
 use rocket::{http::Status, serde::json::Json, State};
+use rocket::http::CookieJar;
 
 #[get("/notes")]
 pub fn create_notes(db: &State<MongoRepo>) -> Result<Json<InsertOneResult>, Status> {
@@ -22,38 +23,51 @@ pub fn get_notes(db: &State<MongoRepo>, path: String) -> Result<Json<NoteCollect
   let notes_detail = db.get_notes(&id);
 
   match notes_detail {
-    Ok(notes) => Ok(Json(notes)),
+    Ok(Some(notes)) => Ok(Json(notes)),
+    Ok(None) => Err(Status::NoContent),
     Err(_) => Err(Status::InternalServerError)
   }
 }
 
 #[put("/notes/<path>", data="<new_note>")]
-pub fn add_note(db: &State<MongoRepo>, path: String, new_note: Json<Note>) -> Result<Json<NoteCollection>, Status> {
-  let id = path;
-  if id.is_empty() {
-    return Err(Status::BadRequest);
-  }
+pub fn add_note(db: &State<MongoRepo>, cookies: &CookieJar<'_>, path: String, new_note: Json<Note>) -> Result<Json<NoteCollection>, Status> {
+  let authorised = db.check_auth(cookies);
 
-  let data = Note {
-    datetime: new_note.datetime.to_owned(),
-    clinician: new_note.clinician,
-    note: new_note.note.to_owned()
-  };
+  if authorised {
+    let id = path;
+    if id.is_empty() {
+      return Err(Status::BadRequest);
+    }
 
-  let update_result = db.add_note(&id, data);
-
-  match update_result {
-    Ok(update) => {
-      if update.matched_count == 1 {
-        let updated_notes_collection = db.get_notes(&id);
-        match updated_notes_collection {
-          Ok(notes) => Ok(Json(notes)),
-          Err(_) => Err(Status::InternalServerError)
+    let clinician_id = match cookies.get_private("user_id") {
+      Some(id) => id.value().to_string(),
+      _ => return Err(Status::Forbidden)
+    };
+    
+    let data = Note {
+      datetime: new_note.datetime.to_owned(),
+      clinician: ObjectId::parse_str(clinician_id).unwrap(),
+      note: new_note.note.to_owned()
+    };
+  
+    let update_result = db.add_note(&id, data);
+  
+    match update_result {
+      Ok(update) => {
+        if update.matched_count == 1 {
+          let updated_notes_collection = db.get_notes(&id);
+          match updated_notes_collection {
+            Ok(Some(notes)) => Ok(Json(notes)),
+            Ok(None) => Err(Status::NoContent),
+            Err(_) => Err(Status::InternalServerError)
+          }
+        } else {
+          Err(Status::NotFound)
         }
-      } else {
-        Err(Status::NotFound)
-      }
-    },
-    Err(_) => Err(Status::InternalServerError)
+      },
+      Err(_) => Err(Status::InternalServerError)
+    }
+  } else {
+    Err(Status::Forbidden)
   }
 }

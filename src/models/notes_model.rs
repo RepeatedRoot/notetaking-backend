@@ -5,6 +5,7 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Note {
   pub datetime: String,     //The time when the note was created
+  #[serde(default = "ObjectId::default")]
   pub clinician: ObjectId,  //The clinician who made the note
   pub note: String          //The note itself
 }

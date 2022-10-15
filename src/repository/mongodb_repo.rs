@@ -255,8 +255,8 @@ impl MongoRepo {
   }
 
   /* Get the notes of a client given the ID of the notes entry */
-  pub fn get_notes(&self, id: &String) -> Result<NoteCollection, Box<dyn Error>> {
-    let obj_id = ObjectId::parse_str(id).unwrap();
+  pub fn get_notes(&self, id: &String) -> Result<Option<NoteCollection>, Box<dyn Error>> {
+    let obj_id = ObjectId::parse_str(id)?;
     let filter = doc! { "_id": obj_id };
     let notes_detail = self
       .notes
@@ -264,12 +264,12 @@ impl MongoRepo {
       .ok()
       .expect("Error getting notes details");
     
-    Ok(notes_detail.unwrap())
+    Ok(notes_detail)
   }
 
   /* Add a note to a given collection of notes given the collection's ID */
   pub fn add_note(&self, id: &String, note: Note) -> Result<UpdateResult, Box<dyn Error>> {
-    let obj_id = ObjectId::parse_str(id).unwrap();
+    let obj_id = ObjectId::parse_str(id)?;
     let filter = doc! { "_id": obj_id };
     let new_doc = doc! {
       "$push": {

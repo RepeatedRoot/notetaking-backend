@@ -1,9 +1,8 @@
 //database url
-const DATABASE_URL = "http://127.0.0.1:8000";
+const DATABASE_URL = "http://192.168.0.20:8000";
 const loginModal = new bootstrap.Modal('#loginModal');
 const loginToast = new bootstrap.Toast(document.getElementById('logintoast'));
-
-loginModal.show();
+const noteModal = new bootstrap.Modal('#noteModal');
 
 //Append a client entry to the list
 $.fn.appendClient = function (clientdata) {
@@ -55,6 +54,11 @@ $.fn.viewNotes = function () {
 	let client = $(this); //The ID of the client information div
 
 	let NoteId = client.attr('notes'); //The note ID attribute of the client entry
+	
+	$('.notes-container').attr('current-client', client.attr('id'));
+	$('.notes-container').attr('current-notes', client.attr('notes'));
+
+	$('.notes-container .row').remove(); //remove any old entries if present
 
 	var response; //to store returned information
 
@@ -88,44 +92,64 @@ $.fn.renderNote = function (note) {
 	console.log(note);
 
 	/* Parse the datetime object to a string */
-	let date = new Date(parseInt(note.datetime));
+	let date = new Date(note.datetime);
 
 	/* Append the HTML container */
 	container.append(
 		`
-		<div class="card">
-			<div class="card-header">
-				${date.toDateString()}
-			</div>
-			<div class="card-body">
-				<blockquote class="blockquote mb-0">
-					<p>${note.note}</p>
-					<footer class="blockquote-footer">${note.clinician.$oid}<cite title="Source Title"></cite></footer>
-				</blockquote>
+		<div class="row p-3">
+			<div class="col align-self-center">
+				<div class="card">
+					<div class="card-header">
+						${date.toDateString()}
+					</div>
+					<div class="card-body">
+						<blockquote class="blockquote mb-0">
+							<p>${note.note}</p>
+							<footer class="blockquote-footer">${note.clinician.$oid}<cite title="Source Title"></cite></footer>
+						</blockquote>
+					</div>
+				</div>
 			</div>
 		</div>
 		`
 	);
 }
 
-/* Set options in a dropdown */
-$.fn.setDropdown = async function (data, key) {
+$.fn.createNote = function () {
 	"use strict";
-	const dropdown = $(this);
 
-	var data = await data;
-	data.forEach((entry) => {
-		console.log(entry[key]);
-		dropdown.append(`<option>${entry[key]}</option>`);
+	let clientId = $('.notes-container').attr("current-client");
+	let clientNotes = $('.notes-container').attr("current-notes");
+
+	let date = $('#noteDate').val();
+	let note = $('#noteText').val();
+
+	console.log(clientId);
+	console.log(clientNotes);
+	console.log(date, note);
+  
+
+	$.ajax({
+		url: `${DATABASE_URL}/notes/${clientNotes}`,
+		method: "PUT",
+		async: false,
+		xhrFields: { withCredentials: true },
+		data: JSON.stringify({
+			datetime: date,
+			note: note
+		}),
+		success: function (data) {
+			console.log(data);
+		},
+		error: function (error) {
+			console.log(error);
+		}
 	});
-};
 
-$.fn.createClient = async function () {
-	"use strict";
-};
+	noteModal.hide();
 
-$.fn.createNote = async function (clientId) {
-	"use strict";
+	$().viewNotes();
 };
 
 $.fn.retrieveNotes = async function (clientId) {
@@ -135,23 +159,31 @@ $.fn.retrieveNotes = async function (clientId) {
 $.fn.login = function () {
 	"use strict";
 
-	let username = $('#loginEmail').val();
-	let password = $("#loginPassword").val();
+	/* let username = $('#loginEmail').val();
+	let password = $("#loginPassword").val(); */
 
-	let loginObject = {
-		username: username,
-		password: password
-	};
+	let username = "erikaodinson@cahfs.sa.gov.au";
+	let password = "password";
 
 	$.ajax({
 		url: `${DATABASE_URL}/login`,
 		method: "POST",
 		async: false,
-		data: JSON.stringify(loginObject),
+		data: JSON.stringify({
+			username: username,
+			password: password
+		}),
+  
 		success: function (data) {
 			console.log("Login success " + data);
 			loginModal.hide();
 			loginToast.show();
+
+			$('.client-list').getClients();
+			 
+			$('.client-entry').click(function () {
+			  $(this).viewNotes();
+			});
 		},
 		error: function (error) {
 			console.log(error);
@@ -166,6 +198,7 @@ $.fn.logout = function () {
 		url: `${DATABASE_URL}/logout`,
 		method: "POST",
 		async: false,
+		xhrFields: { withCredentials: true },
 		success: function (data) {
 			console.log("Successfully logged out " + data);
 		},
@@ -174,4 +207,3 @@ $.fn.logout = function () {
 		}
 	})
 }
-// $("#workplace_select").setDropdown(getWorkplaces(), "name");

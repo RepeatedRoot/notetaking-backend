@@ -42,7 +42,9 @@
 			<a href="/" class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
 				<svg class="bi pe-none me-2" width="30" height="24"><use xlink:href="#bootstrap"></use></svg>
 				<span class="fs-5 fw-semibold">CaFHS Notetaking</span>
+				<button type="button" class="btn btn-primary align-self-end" onclick="$().logout()">Logout</button>
 			</a>
+			<!-- Login Modal -->
 			<div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
 				<div class="modal-dialog">
 					<div class="modal-content">
@@ -65,28 +67,43 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- Notes modal -->
+			<div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="staticBackdropLabel">Create a new note</h5>
+						</div>
+						<div class="modal-body">
+							<div class="md-form mb-3">
+								<label for="noteDate" class="form-label">Date</label>
+								<input type="datetime-local" id="noteDate" class="form-control validate">
+							</div>
+							<div class="md-form mb-3">
+								<label for="noteText" class="form-label">Note</label>
+								<textarea class="form-control" rows="4" id="noteText"></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+							<button type="button" class="btn btn-primary" onclick="$().createNote()">Submit</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<div class="d-flex flex-row">
 				<div class="client-list list-group list-group-flush border-bottom scrollarea" style="width: 25vw; height: calc(100vh - 63px); overflow-y: scroll;">
 				</div>
-				<div class="d-flex align-items-stretch flex-shrink-0 bg-white" style="width: 75vw; height: calc(100vh - 63px); right: 0;">
-					<div class="d-flex align-items-center justify-content-center notes-container">
-						<div class="card">
-							<div class="card-header">
-								Quote
-							</div>
-							<div class="card-body">
-								<blockquote class="blockquote mb-0">
-									<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
-									<footer class="blockquote-footer">Someone famous in <cite title="Source Title">Source Title</cite></footer>
-								</blockquote>
-							</div>
-						</div>
+				<div class="d-flex align-items-center justify-content-center flex-shrink-0 bg-white" style="width: 75vw; height: calc(100vh - 63px); right: 0; overflow-y: scroll;">
+					<div class="container notes-container">
 					</div>
 					<div class="toast-container position-fixed bottom-0 end-0 p-3">
 						<div id="logintoast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
 							<div class="toast-header">
 								<svg class="bd-placeholder-img rounded me-2" width="20" height="20" xlmns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
-									<rect width="100&" height="100%" fill="#198754"></rect>
+									<rect width="100%" height="100%" fill="#198754"></rect>
 								</svg>
 								<strong class="me-auto">Information</strong>
 								<small class="text-muted">just now</small>
@@ -105,10 +122,8 @@
 	<script>
 		$(document).ready(function () {
 			$().logout();
-			$(".client-list").getClients();
-			$('.client-entry').click(function () {
-				$(this).viewNotes();
-			});
+			$().login();
+			//loginModal.show();
 		});
 	</script>
 	</body>
