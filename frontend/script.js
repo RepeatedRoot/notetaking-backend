@@ -2,10 +2,12 @@
 const DATABASE_URL = "http://192.168.0.20:8000";
 
 /* Declaring references to main bootstrap components */
-const loginModal = new bootstrap.Modal('#loginModal');
-const noteModal = new bootstrap.Modal('#noteModal');
-const clientModal = new bootstrap.Modal('#clientModal')
-const messageToast = new bootstrap.Toast(document.getElementById('messageToast'));
+const loginModal = new bootstrap.Modal("#loginModal");
+const noteModal = new bootstrap.Modal("#noteModal");
+const clientModal = new bootstrap.Modal("#clientModal");
+const messageToast = new bootstrap.Toast(
+	document.getElementById("messageToast")
+);
 
 //Append a client entry to the list
 $.fn.appendClient = function (clientdata) {
@@ -22,7 +24,7 @@ $.fn.appendClient = function (clientdata) {
 			<div class="col-10 mb-1 small">${clientdata.address}</div>
 		 </a>`
 	);
-}
+};
 
 /* Get list of clients from the database */
 $.fn.getClients = function () {
@@ -41,7 +43,7 @@ $.fn.getClients = function () {
 		},
 		error: function (error) {
 			console.log(error);
-		}
+		},
 	});
 
 	/* Append each entry in the list to the client container */
@@ -50,10 +52,10 @@ $.fn.getClients = function () {
 	});
 
 	/* Add an event listener to each of the client entries which will display the client's notes */
-	$('.client-entry').click(function () {
+	$(".client-entry").click(function () {
 		$(this).viewNotes();
 	});
-}
+};
 
 /* Render notes */
 $.fn.viewNotes = function () {
@@ -61,12 +63,12 @@ $.fn.viewNotes = function () {
 
 	let client = $(this); //The ID of the client information div
 
-	let NoteId = client.attr('notes'); //The note ID attribute of the client entry
-	
-	$('.notes-container').attr('current-client', client.attr('id'));
-	$('.notes-container').attr('current-notes', client.attr('notes'));
+	let NoteId = client.attr("notes"); //The note ID attribute of the client entry
 
-	$('.notes-container .row').remove(); //remove any old entries if present
+	$(".notes-container").attr("current-client", client.attr("id"));
+	$(".notes-container").attr("current-notes", client.attr("notes"));
+
+	$(".notes-container .row").remove(); //remove any old entries if present
 
 	var response; //to store returned information
 
@@ -82,19 +84,19 @@ $.fn.viewNotes = function () {
 		},
 		error: function (error) {
 			console.log(error);
-		}
-	})
+		},
+	});
 
 	/* Append each note to the website */
 	response.notes.forEach((note) => {
-		$('.notes-container').renderNote(note);
+		$(".notes-container").renderNote(note);
 	});
-}
+};
 
 /* Rendering notes to the website */
 $.fn.renderNote = function (note) {
 	"use strict";
-	
+
 	const container = $(this); //the parent element to insert notes into
 
 	/* Parse the datetime object to a string */
@@ -112,7 +114,9 @@ $.fn.renderNote = function (note) {
 					<div class="card-body">
 						<blockquote class="blockquote mb-0">
 							<p>${note.note}</p>
-							<footer class="blockquote-footer">${note.clinician.$oid}<cite title="Source Title"></cite></footer>
+							<footer class="blockquote-footer">${
+								note.clinician.$oid
+							}<cite title="Source Title"></cite></footer>
 						</blockquote>
 					</div>
 				</div>
@@ -120,18 +124,18 @@ $.fn.renderNote = function (note) {
 		</div>
 		`
 	);
-}
+};
 
 /* Creating a new note to be appended in the database */
 $.fn.createNote = function () {
 	"use strict";
 
 	/* Attribute to store the ID of currently selected client's notes */
-	let clientNotes = $('.notes-container').attr("current-notes");
+	let clientNotes = $(".notes-container").attr("current-notes");
 
 	/* Values of inputs elements in the notes modal */
-	let date = $('#noteDate').val();
-	let note = $('#noteText').val();
+	let date = $("#noteDate").val();
+	let note = $("#noteText").val();
 
 	/* PUT request to insert a notes */
 	$.ajax({
@@ -139,20 +143,21 @@ $.fn.createNote = function () {
 		method: "PUT",
 		async: false,
 		xhrFields: { withCredentials: true }, //This endpoint is restricted, send cookies to authenticate
-		data: JSON.stringify({ //Encode data into a json object
+		data: JSON.stringify({
+			//Encode data into a json object
 			datetime: date,
-			note: note
+			note: note,
 		}),
 		success: function () {
 			$().showMessage("Successfully created note", "success"); //Display a success message
 
 			noteModal.hide(); //Hide the notes modal (it is no needed)
-		
+
 			$().viewNotes(); //Re-render the notes to update any changes
 		},
 		error: function (error) {
 			console.log(error);
-		}
+		},
 	});
 };
 
@@ -160,21 +165,23 @@ $.fn.createNote = function () {
 $.fn.manageAcc = function (exists) {
 	"use strict";
 
-	let firstname = $('#clientFirstName');
-	let surname = $('#clientSurname');
-	let middlenames = $('#clientMiddleNames');
-	let sex = $('#clientSex');
-	let address = $('#clientAddress');
-	let postal_address = $('#clientPostalAddress');
-	let phone = $('#clientPhone');
-	
-	if (exists) { 	//The client exists (Update their information)
+	let firstname = $("#clientFirstName");
+	let surname = $("#clientSurname");
+	let middlenames = $("#clientMiddleNames");
+	let sex = $("#clientSex");
+	let address = $("#clientAddress");
+	let postal_address = $("#clientPostalAddress");
+	let phone = $("#clientPhone");
+
+	if (exists) {
+		//The client exists (Update their information)
 		/* Yet to be implemented */
 		console.log("Updating user information is yet to be implemented");
-	} else {		//The client does not exist (create a new account)
+	} else {
+		//The client does not exist (create a new account)
 		$.ajax({
 			url: `${DATABASE_URL}/client`,
-			method: 'POST',
+			method: "POST",
 			async: false,
 			xhrFields: { withCredentials: true }, //This endpoint is restricted, send cookies to authenticate
 			data: JSON.stringify({
@@ -191,10 +198,10 @@ $.fn.manageAcc = function (exists) {
 			},
 			error: function (error) {
 				console.log(error);
-			}
+			},
 		});
 	}
-}
+};
 
 /* Show a message using a bootstrap toast */
 $.fn.showMessage = function (message, state) {
@@ -208,14 +215,14 @@ $.fn.showMessage = function (message, state) {
 		case "warning":
 			colour = "orange";
 		case "success":
-			colour = "green"; 
+			colour = "green";
 	}
 
-	$('#messageToast rect').attr('fill', colour); //Update the colour of the message toast
-	$('.toast-body').text(message);	//Update the messageToast's message
+	$("#messageToast rect").attr("fill", colour); //Update the colour of the message toast
+	$(".toast-body").text(message); //Update the messageToast's message
 
 	messageToast.show();
-}
+};
 
 /* Login to the website */
 $.fn.login = function () {
@@ -233,22 +240,23 @@ $.fn.login = function () {
 		url: `${DATABASE_URL}/login`,
 		method: "POST",
 		async: false,
-		data: JSON.stringify({ //JSON encode input data
+		data: JSON.stringify({
+			//JSON encode input data
 			username: username,
-			password: password
+			password: password,
 		}),
 		success: function (data) {
-			loginModal.hide();	//Hide the login modal (login was successful)
+			loginModal.hide(); //Hide the login modal (login was successful)
 			$().showMessage("Successfully logged in.", "success");
 
-			$('.client-list').getClients(); // Display the list of clients
+			$(".client-list").getClients(); // Display the list of clients
 		},
 		error: function (error) {
 			$().showMessage("There was an error logging in.", "danger");
 			console.log(error);
-		}
-	})
-}
+		},
+	});
+};
 
 /* Logout from the website */
 $.fn.logout = function () {
@@ -265,6 +273,6 @@ $.fn.logout = function () {
 		},
 		error: function (error) {
 			console.log("Error logging out");
-		}
-	})
-}
+		},
+	});
+};

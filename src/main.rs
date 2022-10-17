@@ -21,12 +21,6 @@ use rocket::{Request, Response};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::fs::{FileServer, relative};
 
-/* The webpage (website home) */
-/*#[get("/")]
-fn home() -> &'static str {
-    "Hello, world!"
-}*/
-
 /* To hold CORS header information */
 pub struct CORS;
 
@@ -39,7 +33,7 @@ impl Fairing for CORS {
         }
     }
 
-    /* Function to set headers for the response payload */
+    /* set headers for the response payload */
     async fn on_response<'r>(&self, _req: &'r Request<'_>, res: &mut Response<'r>) {
         res.set_header(Header::new("Access-Control-Allow-Origin", "192.168.0.20:8000"));
         res.set_header(Header::new("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"));

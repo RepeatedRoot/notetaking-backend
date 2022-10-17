@@ -1,5 +1,6 @@
 [global]
 address = "0.0.0.0"
+secret_key = "Mo7jGbqae4alPGXJkS/9A2qOh6VJjlfg/Q8CGlN1T88="
 
 [debug]
 address = "0.0.0.0"

@@ -9,9 +9,10 @@ use rocket_validation::Validated;
 #[post("/login", data="<login_info>")]
 pub fn login(db: &State<MongoRepo>, cookies: &CookieJar<'_>, login_info: Validated<Json<LoginInfo>>) -> Result<(), Status> {
   /* Login information entered by the user */
+  let login_info = login_info.into_inner();
   let new_login = LoginInfo {
-    username: login_info.0.username.to_owned(),
-    password: login_info.0.password.to_owned()
+    username: login_info.username.to_owned(),
+    password: login_info.password.to_owned()
   };
 
   /* Check if the user exists */
