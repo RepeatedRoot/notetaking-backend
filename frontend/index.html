@@ -40,7 +40,7 @@
 		<![endif]-->
 		<div
 			class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white"
-			style="width: 100vw; height: 100vh"
+			style="width: calc(100vw - 16px); height: 100vh;"
 		>
 			<a
 				class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom"
@@ -68,12 +68,14 @@
 							</button>
 						</li>
 						<li>
-							<button class="dropdown-item" type="button">
+							<button class="dropdown-item" type="button"
+							onclick="$('clientModal').attr('update', false); clientModal.show();">
 								Create new client account
 							</button>
 						</li>
 						<li>
-							<button class="dropdown-item" type="button">
+							<button class="dropdown-item" type="button"
+							onclick="$('clientModal').attr('update', true); $().clientUpdate();">
 								Edit a client's information
 							</button>
 						</li>
@@ -245,42 +247,108 @@
 									class="modal-title"
 									id="staticBackdropLabel"
 								>
-									Create a new note
+									Client information
 								</h5>
 							</div>
 							<div class="modal-body">
 								<div class="md-form mb-3">
-									<label for="noteDate" class="form-label"
-										>Date</label
+									<label for="clientFirstname" class="form-label"
+										>Firstname</label
 									>
 									<input
-										type="datetime-local"
-										id="noteDate"
+										type="text"
+										id="clientFirstname"
 										class="form-control validate"
 										required
 									/>
 									<div class="invalid-feedback">
-										Please select a date.
+										Please provide a first name.
 									</div>
 								</div>
 								<div class="md-form mb-3">
-									<label for="noteText" class="form-label"
-										>Note</label
+									<label for="clientMiddleNames" class="form-label"
+										>Middle names</label
 									>
-									<textarea
+									<input
+										type="text"
+										id="clientMiddleNames"
 										class="form-control validate"
-										rows="4"
-										id="noteText"
+									/>
+								</div>
+								<div class="md-form mb-3">
+									<label for="clientLastname" class="form-label"
+										>Lastname</label
+									>
+									<input
+										type="text"
+										id="clientLastname"
+										class="form-control validate"
 										required
-									></textarea>
+									/>
 									<div class="invalid-feedback">
-										Please include a note.
+										Please provide a last name.
+									</div>
+								</div>
+								<div class="md-form mb-3">
+									<label for="clientSex" class="form-label">
+										Gender
+									</label>
+									<select
+										id="clientSex"
+										class="form-select validate"
+										required
+									>
+										<option
+											value=""
+											disabled
+											selected
+											hidden
+										>
+											Choose...
+										</option>
+										<option value="Female">
+											Female
+										</option>
+										<option value="Male">
+											Male
+										</option>
+									</select>
+									<div class="invalid-feedback">
+										Please select a gender.
+									</div>
+								</div>
+								<div class="md-form mb-3">
+									<label for="clientAddress" class="form-label"
+										>Address</label
+									>
+									<input
+										type="text"
+										id="clientAddress"
+										class="form-control validate"
+										required
+									/>
+									<div class="invalid-feedback">
+										Please provide a first name.
+									</div>
+								</div>
+								<div class="md-form mb-3">
+									<label for="clientPhoneNumber" class="form-label"
+										>Phone Number</label
+									>
+									<input
+										type="number"
+										id="clientPhoneNumber"
+										class="form-control validate"
+										required
+									/>
+									<div class="invalid-feedback">
+										Please provide a phone number.
 									</div>
 								</div>
 							</div>
 							<div class="modal-footer">
 								<button
-									type="button"
+									type="button"></button>
 									class="btn btn-secondary"
 									data-bs-dismiss="modal"
 								>
@@ -317,6 +385,7 @@
 					<div
 						class="toast-container position-fixed bottom-0 end-0 p-3"
 					>
+					<!-- Toast for status messages -->
 						<div
 							id="messageToast"
 							class="toast"
@@ -362,8 +431,6 @@
 			$(document).ready(function () {
 				$().logout();
 				$().login();
-				//noteModal.show();
-				//loginModal.show();
 			});
 
 			/* Validation for logging in */
