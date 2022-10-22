@@ -1,21 +1,24 @@
 /* Include dependencies */
 use crate::{models::client_model::CafhsClient, repository::mongodb_repo::MongoRepo};
-use mongodb::results::InsertOneResult;
+use mongodb::{bson::oid::ObjectId, results::InsertOneResult};
 use rocket::http::CookieJar;
 use rocket::{http::Status, serde::json::Json, State};
+use rocket_validation::Validated;
 
 /* Create a new client entry in the database, retun the ID */
 #[post("/client", data = "<new_client>")]
 pub fn create_client(
     db: &State<MongoRepo>,
     cookies: &CookieJar<'_>,
-    new_client: Json<CafhsClient>,
+    new_client: Validated<Json<CafhsClient>>,
 ) -> Result<Json<InsertOneResult>, Status> {
     let authorised = db.check_auth(cookies);
 
     if authorised {
+        let new_client = new_client.into_inner();
+
+        //A structure to hold the client's information
         let data = CafhsClient {
-            //A structure to hold the client's information
             id: None,
             firstname: new_client.firstname.to_owned(),
             surname: new_client.surname.to_owned(),
@@ -73,6 +76,53 @@ pub fn get_client(
     } else {
         Err(Status::Forbidden)
     }
+}
+
+/* Update a client's information given their ID */
+#[put("/client/<path>", data="<new_client>")]
+pub fn update_client(db: &State<MongoRepo>, cookies: &CookieJar<'_>, path: String, new_client: Validated<Json<CafhsClient>>) -> Result<Json<CafhsClient>, Status> {
+  let authorised = db.check_auth(cookies);
+  
+  if authorised {
+    let new_client = new_client.into_inner(); //unwrap the new_client Structure from the validation wrapping
+    
+    let id = path;
+    if id.is_empty() {
+      return Err(Status::BadRequest);
+    }
+  
+    let data = CafhsClient {
+      id: Some(ObjectId::parse_str(&id).unwrap()),
+      firstname: new_client.firstname.to_owned(),
+      middlenames: new_client.middlenames.to_owned(),
+      surname: new_client.surname.to_owned(),
+      sex: new_client.sex.clone(),
+      address: new_client.address.to_owned(),
+      postal_address: new_client.postal_address.to_owned(),
+      phone: new_client.phone.to_owned(),
+      connections: new_client.connections.to_owned(),
+      notes: new_client.notes.to_owned()
+    };
+  
+    let update_result = db.update_client(&id, data);
+  
+    match update_result {
+      Ok(update) => {
+        if update.matched_count == 1 {
+          let updated_client_info = db.get_client(&id);
+          match updated_client_info {
+            Ok(client) => Ok(Json(client)),
+            Err(_) => Err(Status::InternalServerError)
+          }
+        } else {
+          Err(Status::NotFound)
+        }
+      },
+      Err(_) => Err(Status::InternalServerError)
+    }
+  } else {
+    Err(Status::Forbidden)
+  }
 }
 
 /* Get a list of all client's information */

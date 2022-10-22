@@ -221,6 +221,33 @@ impl MongoRepo {
         Ok(client_detail.unwrap())
     }
 
+    /* Update a client's details given new details and their ID */
+    pub fn update_client(&self, id: &String, new_client: CafhsClient) -> Result<UpdateResult, Box<dyn Error>> {
+        let obj_id = ObjectId::parse_str(id).unwrap(); //Parse the ID string into an ID object (ObjectId struct)
+        let filter = doc! { "_id": obj_id }; //Create a filter document to filter by the ID
+        let new_doc = doc! {  //Create a document to describe the new information
+          "$set": {
+            "id": new_client.id,
+            "firstname": new_client.firstname,
+            "middlenames": new_client.middlenames,
+            "surname": new_client.surname,
+            "sex": bson::to_bson(&new_client.sex)?,
+            "address": new_client.address,
+            "postal_address": new_client.postal_address,
+            "phone": new_client.phone,
+            "connections": new_client.connections,
+            "notes": new_client.notes,
+          }
+        };
+        let updated_doc: UpdateResult = self //update the document
+            .clients
+            .update_one(filter, new_doc, None)
+            .ok()
+            .expect("Error updating User");
+
+        Ok(updated_doc) //return the ID of the updated document
+    }
+
     /* Get a list of all clients in the database */
     pub fn get_all_clients(&self) -> Result<Vec<CafhsClient>, Box<dyn Error>> {
         let cursors = self

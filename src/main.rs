@@ -8,7 +8,7 @@ extern crate rocket;
 
 /* Include endpoint handlers */
 use api::user_api::{create_user, get_user, update_user, delete_user, get_all_users};
-use api::client_api::{create_client, get_client, get_all_clients};
+use api::client_api::{create_client, get_client, update_client, get_all_clients};
 use api::workplace_api::{get_workplace, get_all_workplaces};
 use api::notes_api::{create_notes, get_notes, add_note};
 use api::auth_api::{login, logout, user_id};
@@ -49,12 +49,12 @@ fn rocket() -> _ {
 
     /* Add endpoints and states to rocket instance */
     rocket::build()
-    .manage(db)
-    .attach(CORS)
-    .mount("/", routes![create_user, get_user, update_user, delete_user, get_all_users])
-    .mount("/", routes![create_client, get_client, get_all_clients])
-    .mount("/", routes![get_workplace, get_all_workplaces])
-    .mount("/", routes![create_notes, get_notes, add_note])
-    .mount("/", routes![login, logout, user_id])
-    .mount("/", FileServer::from(relative!("frontend")))
+    .manage(db)                                                                             //Connection to the database
+    .attach(CORS)                                                                           //CORS policy handler
+    .mount("/", routes![create_user, get_user, update_user, delete_user, get_all_users])    //User data manipulation
+    .mount("/", routes![create_client, get_client, update_client, get_all_clients])         //Client data manipulation
+    .mount("/", routes![get_workplace, get_all_workplaces])                                 //Workplaces
+    .mount("/", routes![create_notes, get_notes, add_note])                                 //Managing notes
+    .mount("/", routes![login, logout, user_id])                                            //Authentication
+    .mount("/", FileServer::from(relative!("frontend")))                                    //Serve the user-interface files
 }
