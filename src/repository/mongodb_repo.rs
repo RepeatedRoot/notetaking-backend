@@ -222,7 +222,11 @@ impl MongoRepo {
     }
 
     /* Update a client's details given new details and their ID */
-    pub fn update_client(&self, id: &String, new_client: CafhsClient) -> Result<UpdateResult, Box<dyn Error>> {
+    pub fn update_client(
+        &self,
+        id: &String,
+        new_client: CafhsClient,
+    ) -> Result<UpdateResult, Box<dyn Error>> {
         let obj_id = ObjectId::parse_str(id).unwrap(); //Parse the ID string into an ID object (ObjectId struct)
         let filter = doc! { "_id": obj_id }; //Create a filter document to filter by the ID
         let new_doc = doc! {  //Create a document to describe the new information

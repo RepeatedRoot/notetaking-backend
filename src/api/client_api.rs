@@ -12,9 +12,9 @@ pub fn create_client(
     cookies: &CookieJar<'_>,
     new_client: Validated<Json<CafhsClient>>,
 ) -> Result<Json<InsertOneResult>, Status> {
-    let authorised = db.check_auth(cookies);
+    let authorised = db.check_auth(cookies); //Check authorisation status
 
-    if authorised {
+    if authorised { //Authorised
         let new_client = new_client.into_inner();
 
         //A structure to hold the client's information
@@ -28,7 +28,7 @@ pub fn create_client(
             postal_address: new_client.postal_address.to_owned(),
             phone: new_client.phone.to_owned(),
             connections: new_client.connections.clone(),
-            notes: Some(
+            notes: Some( //create a new notes entry for the new account
                 db.create_notes()
                     .unwrap()
                     .inserted_id
@@ -45,7 +45,7 @@ pub fn create_client(
             Ok(client) => Ok(Json(client)),
             Err(_) => Err(Status::InternalServerError),
         }
-    } else {
+    } else { //Not authorised
         Err(Status::Forbidden)
     }
 }
@@ -57,9 +57,9 @@ pub fn get_client(
     cookies: &CookieJar<'_>,
     path: String,
 ) -> Result<Json<CafhsClient>, Status> {
-    let authorised = db.check_auth(cookies);
+    let authorised = db.check_auth(cookies); //Check authorisation
 
-    if authorised {
+    if authorised { //Authorised
         let id = path; // A string of the ID
         if id.is_empty() {
             return Err(Status::BadRequest); //No ID was present, return an error.
@@ -73,7 +73,7 @@ pub fn get_client(
             Ok(client) => Ok(Json(client)),
             Err(_) => Err(Status::InternalServerError),
         }
-    } else {
+    } else { //Not authorised
         Err(Status::Forbidden)
     }
 }
@@ -81,16 +81,18 @@ pub fn get_client(
 /* Update a client's information given their ID */
 #[put("/client/<path>", data="<new_client>")]
 pub fn update_client(db: &State<MongoRepo>, cookies: &CookieJar<'_>, path: String, new_client: Validated<Json<CafhsClient>>) -> Result<Json<CafhsClient>, Status> {
-  let authorised = db.check_auth(cookies);
+  let authorised = db.check_auth(cookies); //Check authorisation
   
   if authorised {
     let new_client = new_client.into_inner(); //unwrap the new_client Structure from the validation wrapping
     
+    /* Check if ID was passed to endpoint */
     let id = path;
     if id.is_empty() {
-      return Err(Status::BadRequest);
+      return Err(Status::BadRequest); //There was no ID, return an error
     }
   
+    //Serialise data
     let data = CafhsClient {
       id: Some(ObjectId::parse_str(&id).unwrap()),
       firstname: new_client.firstname.to_owned(),
@@ -104,24 +106,24 @@ pub fn update_client(db: &State<MongoRepo>, cookies: &CookieJar<'_>, path: Strin
       notes: new_client.notes.to_owned()
     };
   
-    let update_result = db.update_client(&id, data);
+    let update_result = db.update_client(&id, data); //Update information
   
     match update_result {
-      Ok(update) => {
-        if update.matched_count == 1 {
-          let updated_client_info = db.get_client(&id);
+      Ok(update) => { //Update operation occurred
+        if update.matched_count == 1 { //Updated an entry in the database
+          let updated_client_info = db.get_client(&id); //Get updated entry
           match updated_client_info {
-            Ok(client) => Ok(Json(client)),
-            Err(_) => Err(Status::InternalServerError)
+            Ok(client) => Ok(Json(client)), //Entry was returned, serialise to JSON and return
+            Err(_) => Err(Status::InternalServerError)  //There was no entry returned, return an error
           }
-        } else {
-          Err(Status::NotFound)
+        } else { //No entry was updated
+          Err(Status::NotFound) //Return error
         }
       },
-      Err(_) => Err(Status::InternalServerError)
+      Err(_) => Err(Status::InternalServerError) //There was an error when trying to update the information
     }
-  } else {
-    Err(Status::Forbidden)
+  } else { //Not authorised
+    Err(Status::Forbidden) //return an error
   }
 }
 
