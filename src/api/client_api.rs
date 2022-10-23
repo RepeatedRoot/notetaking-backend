@@ -3,20 +3,17 @@ use crate::{models::client_model::CafhsClient, repository::mongodb_repo::MongoRe
 use mongodb::{bson::oid::ObjectId, results::InsertOneResult};
 use rocket::http::CookieJar;
 use rocket::{http::Status, serde::json::Json, State};
-use rocket_validation::Validated;
 
 /* Create a new client entry in the database, retun the ID */
 #[post("/client", data = "<new_client>")]
 pub fn create_client(
     db: &State<MongoRepo>,
     cookies: &CookieJar<'_>,
-    new_client: Validated<Json<CafhsClient>>,
+    new_client: Json<CafhsClient>,
 ) -> Result<Json<InsertOneResult>, Status> {
     let authorised = db.check_auth(cookies); //Check authorisation status
 
     if authorised { //Authorised
-        let new_client = new_client.into_inner();
-
         //A structure to hold the client's information
         let data = CafhsClient {
             id: None,
@@ -80,19 +77,19 @@ pub fn get_client(
 
 /* Update a client's information given their ID */
 #[put("/client/<path>", data="<new_client>")]
-pub fn update_client(db: &State<MongoRepo>, cookies: &CookieJar<'_>, path: String, new_client: Validated<Json<CafhsClient>>) -> Result<Json<CafhsClient>, Status> {
+pub fn update_client(db: &State<MongoRepo>, cookies: &CookieJar<'_>, path: String, new_client: Json<CafhsClient>) -> Result<Json<CafhsClient>, Status> {
   let authorised = db.check_auth(cookies); //Check authorisation
   
   if authorised {
-    let new_client = new_client.into_inner(); //unwrap the new_client Structure from the validation wrapping
+    //let new_client = new_client.into_inner(); //unwrap the new_client Structure from the validation wrapping
     
     /* Check if ID was passed to endpoint */
     let id = path;
     if id.is_empty() {
       return Err(Status::BadRequest); //There was no ID, return an error
     }
-  
-    //Serialise data
+
+    //Deserialise data
     let data = CafhsClient {
       id: Some(ObjectId::parse_str(&id).unwrap()),
       firstname: new_client.firstname.to_owned(),

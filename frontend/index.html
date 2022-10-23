@@ -69,13 +69,13 @@
 						</li>
 						<li>
 							<button class="dropdown-item" type="button"
-							onclick="$('clientModal').attr('update', false); clientModal.show();">
+							onclick="$('#clientModal').attr('update', false); clientModal.show();">
 								Create new client account
 							</button>
 						</li>
 						<li>
 							<button class="dropdown-item" type="button"
-							onclick="$('clientModal').attr('update', true); $().clientUpdate();">
+							onclick="$('#clientModal').attr('update', true); $().clientUpdate();">
 								Edit a client's information
 							</button>
 						</li>
@@ -348,7 +348,7 @@
 							</div>
 							<div class="modal-footer">
 								<button
-									type="button"></button>
+									type="button"
 									class="btn btn-secondary"
 									data-bs-dismiss="modal"
 								>
@@ -506,7 +506,7 @@
 								event.stopPropagation(); //Stop checking forms
 							} else {
 								event.preventDefault(); //Prevent default (do not reload page)
-								//$().createNote();			//Submit new note information to server
+								$().submitClient($('#clientModal').attr('update')); //Submit or update client account information
 							}
 
 							form.classList.add("was-validated"); //Form was validated, add to class list

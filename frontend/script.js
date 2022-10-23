@@ -18,7 +18,7 @@ $.fn.appendClient = function (clientdata) {
   clientList.append(
     `<a id=${clientdata._id.$oid} notes=${clientdata.notes.$oid} class="client-entry list-group-item list-group-item-action py-3 lh-sm" aria-current="true" style="cursor: pointer"	>
 			<div class="d-flex w-100 align-items-center justify-content-between">
-				<strong class="mb-1">${clientdata.firstname} ${clientdata.surname}</strong>
+				<strong class="mb-1">${clientdata.firstname} ${clientdata.middlenames!=undefined ? clientdata.middlenames : ''} ${clientdata.surname}</strong>
 				<small>${clientdata.sex}</small>
 			</div>
 			<div class="col-10 mb-1 small">${clientdata.address}</div>
@@ -114,6 +114,7 @@ $.fn.submitClient = function (update) {
     information["phone"] = String($("#clientPhoneNumber").val());
 
   console.log(information);
+  console.log(update);
 
   /* Initialise variables */
   let endpoint = new String();
@@ -121,7 +122,8 @@ $.fn.submitClient = function (update) {
   let message = new String();
 
   /* If an account's information is being updated */
-  if (update) {
+  if (update=='true') {
+    console.log("Updating");
     let ID = $(".notes-container").attr("current-client"); //ID of currently selected client
     endpoint = `${DATABASE_URL}/client/${ID}`;
     method = "PUT";
@@ -200,6 +202,21 @@ $.fn.renderNote = function (note) {
   /* Parse the datetime object to a string */
   let date = new Date(note.datetime);
 
+  let clinician;
+
+  $.ajax({
+    url: `${DATABASE_URL}/user/${note.clinician.$oid}`,
+    method: "GET",
+    async: false,
+    xhrFields: { withCredentials: true }, //This endpoint is restricted, send cookies to authenticate
+    success: function (data) {
+      clinician = data;
+    },
+    error: function (error) {
+      console.log(error);
+    },
+  });
+
   /* Append the HTML container */
   container.append(
     `
@@ -213,7 +230,7 @@ $.fn.renderNote = function (note) {
 						<blockquote class="blockquote mb-0">
 							<p>${note.note}</p>
 							<footer class="blockquote-footer">${
-                note.clinician.$oid
+                clinician.firstname + ' ' + clinician.lastname
               }<cite title="Source Title"></cite></footer>
 						</blockquote>
 					</div>

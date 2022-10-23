@@ -139,7 +139,6 @@ impl MongoRepo {
         let filter = doc! { "_id": obj_id }; //Create a filter document to filter by the ID
         let new_doc = doc! {  //Create a document to describe the new information
           "$set": {
-            "id": new_user.id,
             "firstname": new_user.firstname,
             "lastname": new_user.lastname,
             "phone": new_user.phone,
@@ -210,15 +209,15 @@ impl MongoRepo {
 
     /* Get the details of a client given their ID */
     pub fn get_client(&self, id: &String) -> Result<CafhsClient, Box<dyn Error>> {
-        let obj_id = ObjectId::parse_str(id).unwrap();
-        let filter = doc! { "_id": obj_id };
-        let client_detail = self
+        let obj_id = ObjectId::parse_str(id).unwrap(); //The ID of the client to search by
+        let filter = doc! { "_id": obj_id };    //Create a filter document
+        let client_detail = self //Search for the client entry
             .clients
             .find_one(filter, None)
             .ok()
             .expect("Error getting client's details");
 
-        Ok(client_detail.unwrap())
+        Ok(client_detail.unwrap()) //Return the entry
     }
 
     /* Update a client's details given new details and their ID */
@@ -231,7 +230,6 @@ impl MongoRepo {
         let filter = doc! { "_id": obj_id }; //Create a filter document to filter by the ID
         let new_doc = doc! {  //Create a document to describe the new information
           "$set": {
-            "id": new_client.id,
             "firstname": new_client.firstname,
             "middlenames": new_client.middlenames,
             "surname": new_client.surname,
@@ -240,7 +238,6 @@ impl MongoRepo {
             "postal_address": new_client.postal_address,
             "phone": new_client.phone,
             "connections": new_client.connections,
-            "notes": new_client.notes,
           }
         };
         let updated_doc: UpdateResult = self //update the document
@@ -254,14 +251,14 @@ impl MongoRepo {
 
     /* Get a list of all clients in the database */
     pub fn get_all_clients(&self) -> Result<Vec<CafhsClient>, Box<dyn Error>> {
-        let cursors = self
+        let cursors = self //create a cursor to each object in the clients collection
             .clients
             .find(None, None)
             .ok()
             .expect("Error getting list of clients");
-        let clients = cursors.map(|doc| doc.unwrap()).collect();
+        let clients = cursors.map(|doc| doc.unwrap()).collect(); //collect the cursors into a vector of CafhsClient structs
 
-        Ok(clients)
+        Ok(clients) //Return the vector
     }
 
     /* Get the details of workplace given it's ID */
